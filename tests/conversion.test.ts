@@ -1,0 +1,111 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { money } from '../src/domain/money.ts';
+import { exchange, expense } from '../src/domain/operations.ts';
+import { conversionEffectiveRatio, deriveConversionDest } from '../src/domain/types.ts';
+import { RATE_1180, TODAY, acct, cat, refs } from './fixtures.ts';
+import type { Transaction } from '../src/domain/types.ts';
+
+function bridgeAmount(tx: Transaction, accountId: string): bigint {
+  const posting = tx.postings.find((p) => p.accountId === accountId);
+  assert.ok(posting, `missing bridge ${accountId}`);
+  return posting.amount;
+}
+
+test('quoteDirection defines how the stored ratio is applied', () => {
+  const base = {
+    fromCurrency: 'ARS',
+    toCurrency: 'USD',
+    rateText: '1180',
+    rateRatio: { num: 1180n, den: 1n },
+    rateAt: '2026-10-04T12:00:00Z',
+    source: 'manual' as const,
+    roundingMode: 'half-away-from-zero' as const,
+  };
+  assert.deepEqual(conversionEffectiveRatio({ ...base, quoteDirection: 'srcPerDest' }), { num: 1n, den: 1180n });
+  assert.deepEqual(conversionEffectiveRatio({ ...base, quoteDirection: 'destPerSrc' }), { num: 1180n, den: 1n });
+  assert.equal(deriveConversionDest({ ...base, quoteDirection: 'srcPerDest' }, 10_000_000n), 8475n);
+  assert.equal(deriveConversionDest({ ...base, quoteDirection: 'destPerSrc' }, 10_000_000n), 11_800_000_000n);
+});
+
+test('destPerSrc quote: 0,00085 USD por ARS', () => {
+  const tx = exchange({
+    refs,
+    id: 'fx-direct',
+    date: TODAY,
+    from: acct('bank-ars'),
+    to: acct('bank-usd'),
+    amount: money(1000000n, 'ARS'),
+    rate: { text: '0.00085', quoteDirection: 'destPerSrc', rateAt: '2026-10-04T12:00:00Z', source: 'manual' },
+  });
+  assert.equal(bridgeAmount(tx, 'sys:fx:USD'), -850n);
+  assert.deepEqual(tx.conversion?.rateRatio, { num: 17n, den: 20000n }, 'ratios are stored reduced');
+});
+
+test('srcPerDest quote with decimal text: 0,5 ARS por USD doubles the source', () => {
+  const tx = exchange({
+    refs,
+    id: 'fx-half',
+    date: TODAY,
+    from: acct('bank-ars'),
+    to: acct('bank-usd'),
+    amount: money(1000000n, 'ARS'),
+    rate: { text: '0.5', quoteDirection: 'srcPerDest', rateAt: '2026-10-04T12:00:00Z', source: 'institution' },
+  });
+  assert.equal(bridgeAmount(tx, 'sys:fx:USD'), -2000000n);
+});
+
+test('rounding mode is stored per conversion and changes the stored integer', () => {
+  const rate = { text: '0.5', quoteDirection: 'destPerSrc' as const, rateAt: '2026-10-04T12:00:00Z', source: 'manual' as const };
+  const halfAway = exchange({
+    refs,
+    id: 'rnd-away',
+    date: TODAY,
+    from: acct('bank-ars'),
+    to: acct('bank-usd'),
+    amount: money(1000001n, 'ARS'),
+    rate: { ...rate, roundingMode: 'half-away-from-zero' },
+  });
+  const halfEven = exchange({
+    refs,
+    id: 'rnd-even',
+    date: TODAY,
+    from: acct('bank-ars'),
+    to: acct('bank-usd'),
+    amount: money(1000001n, 'ARS'),
+    rate: { ...rate, roundingMode: 'half-even' },
+  });
+  assert.equal(bridgeAmount(halfAway, 'sys:fx:USD'), -500001n, '500000.5 -> 500001 half-away');
+  assert.equal(bridgeAmount(halfEven, 'sys:fx:USD'), -500000n, '500000.5 -> 500000 half-even');
+  assert.equal(halfAway.conversion?.roundingMode, 'half-away-from-zero');
+  assert.equal(halfEven.conversion?.roundingMode, 'half-even');
+});
+
+test('rate source is recorded verbatim', () => {
+  const tx = exchange({
+    refs,
+    id: 'src-inst',
+    date: TODAY,
+    from: acct('bank-ars'),
+    to: acct('bank-usd'),
+    amount: money(10000000n, 'ARS'),
+    rate: { ...RATE_1180, source: 'file' },
+  });
+  assert.equal(tx.conversion?.source, 'file');
+  assert.equal(tx.conversion?.rateText, '1180');
+});
+
+test('cross-currency expense re-derives identically to the exchange path', () => {
+  const paid = expense({
+    refs,
+    id: 'x1',
+    date: TODAY,
+    account: acct('bank-usd'),
+    amount: money(1000000n, 'ARS'),
+    category: cat('food'),
+    rate: RATE_1180,
+  });
+  assert.equal(bridgeAmount(paid, 'sys:fx:USD'), 847n);
+  assert.equal(paid.conversion?.fromCurrency, 'ARS');
+  assert.equal(paid.conversion?.toCurrency, 'USD');
+});
