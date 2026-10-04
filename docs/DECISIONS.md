@@ -1,0 +1,199 @@
+# MoneyFOSS — Decisiones (registro append-only)
+
+**Regla:** este archivo es append-only. Nunca reescribir una entrada existente. Para cambiar una decisión se añade una entrada nueva con ID mayor que cita a la anterior y declara `SUPERSEDES` o `SUPERSEDED-BY`. Cada entrada tiene estatus: `DECIDED`, `PROVISIONAL` u `OPEN`.
+
+**Convención de estatus** (definida en [AGENTS.md](../AGENTS.md)):
+
+- `DECIDED` — fuente primaria verificable, spike reproducible, o principio de producto ratificado por el usuario.
+- `PROVISIONAL` — recomendación con evidencia parcial; la entrada nombra qué evidencia falta.
+- `OPEN` — sin recomendación; la entrada nombra la pregunta exacta y qué spike/investigación la resolvería.
+
+Fecha de las entradas iniciales: **2026-09-29**. Fuente de ratificación de los principios: prompt de Fase 0 del usuario (producto definido en §1–§2 del informe).
+
+---
+
+## Parte A — Principios de producto (DECIDED)
+
+Ratificados por el usuario como definición de producto. No son decisiones técnicas: son la constitución del proyecto. Un agente no puede proponer su reversión.
+
+| ID | Principio | Estado |
+|----|-----------|--------|
+| P-01 | Offline-first / local-first real: la app funciona 100% sin red. | DECIDED |
+| P-02 | Sin cuenta obligatoria, sin backend obligatorio, sin cloud obligatorio. | DECIDED |
+| P-03 | Sin telemetría, sin analytics de usuario, sin publicidad, sin venta de datos. | DECIDED |
+| P-04 | Sin operaciones financieras reales: registro + organización + análisis descriptivo. MoneyFOSS no mueve dinero. | DECIDED |
+| P-05 | Datos bajo control del usuario; formatos portables; export/backup sin lock-in. | DECIDED |
+| P-06 | Ledger como única fuente de verdad; balances derivados, nunca segunda fuente misteriosa. | DECIDED |
+| P-07 | Representación monetaria entera (minor units). Floating point prohibido para dinero. | DECIDED |
+| P-08 | Toda importación es untrusted input; pipeline de validación con confirmación del usuario y commit atómico. | DECIDED |
+| P-09 | Backups lógicos, versionados y portables; SQLite nunca es el formato público de backup. | DECIDED |
+| P-10 | Decisiones append-only (este archivo). | DECIDED |
+| P-11 | Sin feature creep durante el MVP; cambios de scope solo con justificación escrita. | DECIDED |
+| P-12 | Android-first; sin dependencia obligatoria de Google Play ni de Google Play Services. | DECIDED |
+| P-13 | Inmutabilidad del registro original para análisis económico: la transacción original nunca se modifica para introducir valor real; todo análisis económico (p. ej. inflación) es vista derivada sobre datos nominales. | DECIDED |
+
+## Parte B — Registro técnico
+
+Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisión técnica está congelada en Fase 0.
+
+---
+
+### T-001 — Stack de UI: React Native + Expo CNG vs Kotlin + Compose nativo
+
+- **Estado:** PROVISIONAL (RN/Expo como candidato); Kotlin+Compose como alternativa documentada. No hay decisión.
+- **Contexto:** hipótesis original del usuario: RN + Expo Development Build / CNG + TypeScript. Riesgo específico de este proyecto: la cadena de permisos (`INTERNET`) viene de los manifests nativos de las librerías; el requisito P-01 puede conflictuar con ella.
+- **Opciones:** (a) RN + Expo CNG; (b) Kotlin + Jetpack Compose nativo.
+- **Trade-offs:** (a) ecosistema JS, CNG genera el proyecto Android; un solo lenguaje en todo el repo, pero superficie de dependencias mayor y control menos directo del manifest final. (b) control nativo total del manifest y del ciclo de vida, sin puente JS, pero todo el desarrollo es Android (sin camino inmediato a iOS/desktop) y el core en TypeScript de la hipótesis se reemplaza por Kotlin.
+- **Evidencia requerida para DECIDED:** resultado del spike T-002 (INTERNET) + decisión explícita del usuario. El informe (§12) lista las preguntas exactas del spike.
+
+### T-002 — Permiso `android.permission.INTERNET` en el APK final
+
+- **Estado:** OPEN. Pregunta exacta: *"¿Puede el APK release de una app RN/Expo carecer legítimamente de `INTERNET` sin romper el runtime, y cómo se verifica automáticamente?"*
+- **Estado del conocimiento:** el merger de manifests combina app + variantes + librerías con prioridad al manifest del módulo app; `tools:node="remove"` en el manifest de mayor prioridad elimina elementos de menor prioridad [FACT, Android Developers, "Manage manifest files", developer.android.com/build/manage-manifests, consultado 2026-09-29]. Que la plantilla/main de RN declara `INTERNET` es INTERPRETATION no verificada en esta fase (los fetch de la plantilla devolvieron 404) — identificar el nodo exacto que la declara es la primera pregunta del spike.
+- **Lo que falta:** (1) identificar en el spike qué nodo exacto declara `INTERNET` en la versión elegida (ReactAndroid vs Expo modules vs otra dependencia); (2) confirmar con AAB/apkanalyzer que el elemento desaparece del manifest final; (3) probar runtime sin red y sin permiso: crash de capa nativa, intent fallback, etc.; (4) definir el release gate automático.
+- **Spike definido:** ver PHASE0_REPORT §12.4 (solo se ejecuta con autorización del usuario).
+
+### T-003 — Implementación de persistencia: expo-sqlite / op-sqlite / WatermelonDB / otra
+
+- **Estado:** OPEN (comparación hecha, decisión condicionada a T-001 y T-002).
+- **Contexto:** WatermelonDB es un framework reactivo orientado a sync contra backend propio [FACT, README de Nozbe/WatermelonDB, consultado 2026-09-29]; MoneyFOSS no tiene backend (P-02), lo que hace su sync principal un coste sin beneficio actual. expo-sqlite provee acceso directo a SQLite y ya empaqueta SQLite3 y SQLCipher como fuentes vendorizadas [FACT, README de expo/expo packages/expo-sqlite, consultado 2026-09-29]. op-sqlite (MIT) es un driver JSI con SQLCipher opcional como target de compilación [FACT, README de OP-Engineering/op-sqlite, consultado 2026-09-29].
+- **Trade-offs:** ver PHASE0_REPORT §12. Resumen: el dominio financiero debe aislarse detrás de una interfaz propia (puerto) para que la elección no se filtre al core; PERO sin sobre-abstracción (una sola implementación mientras no haya segunda).
+- **Evidencia requerida para DECIDED:** T-001/T-002 resueltos + criterios del §12 (licencia, migraciones, cifrado posterior, build F-Droid, mantenimiento) aplicados a la versión concreta elegida.
+
+### T-004 — Cifrado de la base de datos (SQLCipher u otro) en el MVP
+
+- **Estado:** OPEN. La hipótesis original (diferirlo) es solo eso: una hipótesis que el threat model debe confirmar o refutar.
+- **Contexto:** el análisis preliminar (PHASE0_REPORT §15) muestra que la DB encryption no protege contra el escenario "dispositivo desbloqueado en manos de otra persona" si la app abre la DB, pero sí contra "copia de la DB exfiltrada" (malware con acceso a archivos, backup del sistema, root). La decisión depende de qué riesgos residuales acepte el usuario en el threat model.
+- **Evidencia requerida para DECIDED:** threat model (§14) cerrado con el usuario; verificación de coste (tamaño, rendimiento) de la opción elegida si se adopta (expo-sqlite ya vendoriza SQLCipher — FACT citado en T-003 — lo que reduciría el coste de adopción).
+
+### T-005 — Primitiva de cifrado de backups opcionales
+
+- **Estado:** OPEN.
+- **Restricciones heredadas (no negociables):** sin dependencias que introduzcan red; algoritmo recomendado por la plataforma: AES-256-GCM, SHA-2, HMAC-SHA-256 [FACT, Android Developers — "Cryptography", developer.android.com/privacy-and-security/cryptography, consultado 2026-09-29]; KDF moderno para passphrases (familia argon2/bcrypt/scrypt o PBKDF2 con parámetros altos — la elección exacta es parte de esta decisión); todo el stack debe funcionar offline.
+- **Evidencia requerida para DECIDED:** auditoría de qué librería concreta implementa el KDF elegido dentro del stack (JS/RN o nativa), su licencia, y que su uso es puramente local; decisión de recovery keys (qué ocurre si se pierde la passphrase) documentada en el threat model.
+
+### T-006 — Representación exacta de dinero
+
+- **Estado:** PROVISIONAL.
+- **Recomendación:** enteros int64 en minor units + exponente (precisión) tomado de una tabla embebida offline derivada de ISO 4217. El principio P-07 (enteros, nunca float) ya está congelado; lo PROVISIONAL aquí es la representación exacta (int64 vs bigint arbitrario, exponente fijo por moneda vs campo por importe).
+- **Trade-offs:** int64 cubre con holgura finanzas personales en minor units (límite ~9.2×10¹⁸) pero exige reglas explícitas de saturación/validación al importar; exponente por moneda evita asumir 2 decimales (ARS=2, CLP/JPY=0, KWD=3 — FACT: ISO 4217 define minor units por moneda y se mantiene activamente [Wikipedia/ISO 4217 con referencia a la edición 2015 y mantenimiento por SIX Group, consultado 2026-09-29; verificación puntual ARS/CLP/JPY/KWD pendiente de test]).
+- **Evidencia requerida para DECIDED:** decision record con los tests de frontera definidos (PHASE0_REPORT §9) + verificación puntual de exponents usados.
+
+### T-007 — Política de redondeo
+
+- **Estado:** OPEN. La hipótesis "half-up universal" fue rechazada como decisión por falta de evidencia (feedback del usuario).
+- **Pregunta exacta:** *"¿En qué operaciones se produce redondeo, qué cantidades se almacenan exactamente, y qué regla evita pérdida silenciosa de precisión en conversiones y transacciones multicurrency?"*
+- **Sub-preguntas:** conversión no exacta (¿se almacena la pata redondeada, la pata con residuo, o ambas?); transacción multicurrency (¿cómo balancea? — ver T-008); qué se conserva para auditabilidad (tasa, fecha-hora, fuente, método).
+- **Evidencia requerida para DECIDED:** análisis formal de los escenarios (§9/§10 del informe) + decisión del usuario sobre el trade-off exactitud-vs-simplicidad de cada opción.
+
+### T-008 — Regla de balanceo del ledger con multimoneda
+
+- **Estado:** OPEN. El informe (§7/§8) presenta tres mecanismos candidatos con trade-offs; ninguno está congelado.
+- **Opciones:** (a) Σ global = 0 con una sola moneda de consolidación implícita; (b) Σ = 0 estricta por moneda (cada transacción balancea en cada moneda que toca); (c) patas de conversión explícitas (la transacción lleva un posting puente que hace la conversión visible y auditable).
+- **Criterios de decisión:** corrección del patrimonio, auditabilidad de conversiones, coste UX, testabilidad. La regla que sea, se implementa UNA vez en el dominio con tests (invariante crítica).
+- **Evidencia requerida para DECIDED:** walkthrough de los 10 casos del checklist de PHASE0_REPORT §8 (activo nuevo, pasivo, ingreso, gasto, transferencia, pago de tarjeta, deuda, apertura de saldos, ajuste, conversión) contra cada opción + decisión del usuario. [Corregido en auditoría 2026-09-29: conteo previo inconsistente (6 vs 8 vs 10).]
+
+### T-009 — Licencia del proyecto
+
+- **Estado:** PROVISIONAL (GPL-3.0-or-later como opción fuerte, no congelada).
+- **Contexto (FACT, verificado 2026-09-29 vía API de GitHub, archivo LICENSE de cada repo):** Firefly III es **AGPL-3.0** (no GPL-3 como se asumía); Money Manager Ex es GPL-2.0; MyExpenses e Ivy Wallet son GPL-3.0; Actual es MIT. React Native es MIT. Ponytail es MIT; el proxy de Caveman es BSL-1.1 (no copiable como código, no aplicable aquí).
+- **Nota de compatibilidad (INTERPRETATION, a confirmar en auditoría de dependencias):** Apache-2.0 es compatible hacia GPLv3 (no a la inversa); MIT/BSD compatibles ambas direcciones; la licencia final depende del set real de dependencias (T-011) y de assets/fonts (OFL).
+- **Evidencia requerida para DECIDED:** auditoría completa de dependencias y assets + decisión del usuario (copyleft fuerte vs permisivo).
+
+### T-010 — Schema exacto del formato `.moneybackup`
+
+- **Estado:** OPEN. Diseño conceptual en PHASE0_REPORT §13 (lógico, versionado, manifest+checksum, equivalencia semántica backup→restore). El schema exacto y su versión inicial 1 se definen cuando el modelo de datos (T-006/T-007/T-008) esté congelado.
+
+### T-011 — Set final de dependencias
+
+- **Estado:** OPEN. Cada dependencia futura requiere entrada en este registro con: justificación, licencia, ¿acceso a red?, tamaño, mantenimiento. Regla AGENTS.md §5.6.
+
+### T-012 — Canales de distribución
+
+- **Estado:** PROVISIONAL.
+- **Recomendación:** F-Droid como canal principal + GitHub Releases + APK directo; Google Play opcional y no necesario. Sin GMS.
+- **Contexto (FACT, F-Droid Inclusion Policy, f-droid.org/en/docs/Inclusion_Policy, consultado 2026-09-29):** la app debe ser FLOSS verificada, sin SDKs propietarios de tracking/ads/analytics, toolchain 100% FLOSS para el build de F-Droid, aplicación mantenida, con valor único y Application ID propio. Los builds de F-Droid los compila la infraestructura de F-Droid desde el source publicado.
+- **Contexto (FACT, Play Console Help — Financial Services / Financial features declaration, support.google.com/googleplay/android-developer/answer/9876821 y /13849271, consultado 2026-09-29):** existe una declaración obligatoria de "financial features" para toda app en Play, con formulario específico aunque la app declare no tener features financieras; políticas específicas de servicios financieros aplican a préstamos etc. — no al caso de MoneyFOSS, pero el formulario existe.
+- **Evidencia requerida para DECIDED:** reproducibilidad del build bajo toolchain F-Droid comprobada en spike de build (Fase de implementación), y confirmación de disponibilidad de firmante/metadata.
+
+### T-013 — App lock (PIN/biometría) y recovery
+
+- **Estado:** PROVISIONAL (opcional, no por defecto). El mecanismo concreto (código propio vs BiometricPrompt del sistema) y su interacción con recovery se cierran con el threat model (T-004/T-005). Ver análisis de mecanismos en PHASE0_REPORT §15.
+
+### T-014 — Diseño para inflación futura (sin implementarla)
+
+- **Estado:** PROVISIONAL. Principio DECIDED (P-13): las transacciones originales nunca se modifican para introducir valor real; todo análisis económico es vista derivada sobre datos nominales (valor nominal, fecha, moneda). La forma exacta de hooks (índices, fuentes offline de INDEC) queda OPEN para Fase posterior. Contexto INDEC: pendiente de investigación con fuentes oficiales (sin dependencia de red en el core).
+
+### T-015 — Gobernanza de agentes (Caveman + Ponytail embebidos)
+
+- **Estado:** DECIDED (documental).
+- **Decisión:** las reglas de [ponytail](https://github.com/DietrichGebert/ponytail) (MIT, © 2026 DietrichGebert) y del *skill* [caveman](https://github.com/JuliusBrussee/caveman) (MIT; el proxy del mismo proyecto es BSL-1.1 y no se adopta) se **embeben adaptadas con atribución** en [AGENTS.md](../AGENTS.md) como gobernanza del repo. Precedencia: reglas financieras/de seguridad > ponytail > caveman-lite. Caveman nunca degrada explicabilidad de cifras, errores, confirmaciones ni documentos normativos.
+- **Nota:** instalar los skills/proxy en el harness local del usuario queda fuera de este repo y es decisión del usuario; el repo queda gobernado por AGENTS.md en cualquier caso.
+
+---
+
+### T-016 — Cierre de T-008: regla de balanceo del ledger con multimoneda
+
+- **Estado:** DECIDED
+- **Fecha:** 2026-10-04
+- **SUPERSEDE:** el estatus OPEN de T-008 (la pregunta queda respondida; el texto de T-008 se conserva como historial).
+- **Evidencia exigida por T-008, producida:** walkthrough completo de los 10 casos del checklist canónico definido en el cierre de Fase 0 (PHASE0_REPORT §30, tabla 30.3), con postings concretos contra los tres candidatos. Autorización de congelado bajo evidencia: prompt de misión autónoma del usuario (§8: "si la evidencia fuertemente soporta un modelo, congélalo").
+- **Decisión (Candidato C — puente explícito, con validación Σ por moneda):**
+  1. Convención de signos: contable clásica, débito = positivo (ASSET/EXPENSE + al aumentar; LIABILITY/INCOME/EQUITY − al aumentar). Patrimonio = Σ saldos ASSET+LIABILITY.
+  2. Invariante: en cada transacción, para cada moneda, Σ de importes enteros (minor units, int64) = 0. Exacta, sin tolerancia, sin redondeo. Validada en un único punto del dominio con tests (AGENTS §5.1).
+  3. Cuentas ASSET/LIABILITY/EQUITY mono-moneda e inmutables en moneda; INCOME/EXPENSE son cuentas-sistema multi-moneda (no bolsas de valor); categorías sin moneda.
+  4. Conversión = par de postings `bridge` sobre cuentas FX-sistema (`sys:fx:<CUR>`, EQUITY, ocultas, auto-creadas) + registro `Conversion{rateText, rateRatio num/den, quoteDirection, rateAt, source, roundingMode}` que los enlaza. Los importes viven solo en los postings (una copia de verdad). `Conversion` ⇔ exactamente dos bridge postings.
+  5. Categoría: atributo solo de postings INCOME/EXPENSE; prohibida en cuentas de valor (incluye bridge). Hace estructuralmente imposible: transferencia como ingreso, pago de tarjeta como gasto, conversión como ingreso, liquidación de pasivo como gasto (walkthrough §30.4).
+  6. Pagos mixtos multi-moneda sin tasa (cada moneda cierra por sus postings reales) no requieren `Conversion`.
+- **Alternativas consideradas y por qué no:** (A) Σ global — imposible aritmética en enteros redondeados: residuos concretos +500, +540, −240 minor units en los casos 8–10 con la propia tasa del usuario; exigiría tolerancia (invariante difusa, prohibida por P-06) o ajustes fantasma. (B) Σ por moneda puro — invariante correcta pero la conversión queda inrepresentable; la salida (2 transacciones enlazadas) reintroduce el registro de tasa con peor UX y atomicidad en pareja = C peor ejecutado. Tabla completa de 15 criterios: PHASE0_REPORT §30.5.
+- **Consecuencias:** el modelo y el schema de backup derivan de estas entidades (T-010); los tests de Fase 1 implementan esta invariante; abrir de nuevo T-008 exige evidencia nueva que contradiga el walkthrough.
+
+### T-017 — Cierre de T-007: política de redondeo (requisitos congelados, método provisional, dos restos OPEN)
+
+- **Estado:** mixto por componente — **DECIDED** (requisitos) · **PROVISIONAL** (método por defecto) · **OPEN** (dos restos acotados). SUPERSEDE el estatus OPEN global de T-007.
+- **Fecha:** 2026-10-04
+- **Evidencia:** redondeo identificado desde operaciones reales del walkthrough T-008 (PHASE0_REPORT §31), no inventado.
+- **DECIDED:** (a) todo valor monetario almacenado es entero en minor units; (b) parsing estricto en límites de confianza — más decimales que el exponente de la moneda = rechazo, nunca redondeo; (c) la única derivación con redondeo financiero del MVP es conversión: derivar-una-vez → almacenar ambos enteros → registrar `roundingMode`; (d) valores derivados (display, porcentajes, agregados, consolidados) se redondean solo para presentación y **nunca** se escriben en el ledger (P-06/P-13); (e) división monetaria solo vía una función única con modo, testeada en empates.
+- **PROVISIONAL:** modo por defecto `half-away-from-zero` para derivaciones. Evidencia que falta: no hay fuente normativa que mandate un modo (por eso el modo se almacena por operación y es conmutable); si una fuente primaria o necesidad de interop lo exige, se supersede con entrada nueva.
+- **OPEN (acotados, no bloquean Fase 1):** (a) política de resto al dividir en cuotas — se decide al diseñar la feature post-MVP; (b) UX del resto en splits por categoría — Fase 3. En ambos: requisito ya congelado = el resto es siempre explícito, nunca silencioso.
+
+### T-019 — Cierre de T-002: permiso INTERNET en el APK release (mecanismo probado; runtime pendiente del gate)
+
+- **Estado:** PROVISIONAL (mecanismo DECIDED-class probado; falta la prueba de runtime que la pregunta original también exigía)
+- **Fecha:** 2026-10-04
+- **Spike:** ejecutado (throwaway, fuera del repo). Evidencia completa: `evidence/T002_EVIDENCE.md` (expo 57.0.26, RN 0.86.3, 5 builds release, A/B/C, apkanalyzer sobre APK final).
+- **Resultados probados:** (1) APK release **sin** `INTERNET` existe (5 permisos, 3 builds, SHA256 registrado); (2) `<uses-permission android:name="android.permission.INTERNET" tools:node="remove"/>` en el manifest app lo elimina del merge y del APK — matriz A/B/C completa incluyendo el caso "declaración app eliminada → sigue presente"; (3) declarantes exactos: plantilla prebuild (manifest app) + **expo-file-system** 57.0.7 (merger blame `host.exp.exponent:expo.modules.filesystem:57.0.7:8`); (4) `react-android`/`hermes-android` NO lo declaran (escaneados); (5) el dex final contiene okhttp3/expo-fetch/devsupport (con permiso negado por el OS) — hallazgo para el gate (R8).
+- **Lo que falta para DECIDED:** prueba de arranque y flujo en airplane mode con emulador/dispositivo (ningún dispositivo en el entorno del spike). Se ejecuta en el gate de release (Fase 2); si el runtime falla sin permiso, se supersede T-020 con la nueva evidencia.
+- **Gate de release automatizable ya definido:** PHASE0_REPORT §32.4.
+
+### T-020 — Cierre de T-001: stack de UI = React Native + Expo CNG
+
+- **Estado:** DECIDED
+- **Fecha:** 2026-10-04
+- **SUPERSEDE:** estatus PROVISIONAL de T-001.
+- **Autorización:** prompt de misión del usuario, §11 ("si RN/Expo pasa: congélalo como stack actual"); el criterio de paso (viabilidad y auditabilidad de red) fue el spike T-002, ejecutado con el resultado registrado en T-019/evidence.
+- **Decisión:** React Native + Expo SDK 57 (Development Build / CNG, TypeScript) como stack actual; Kotlin+Compose deja de ser alternativa activa (queda documentada en T-001 histórico como fallback si un fallo de runtime posterior lo reabre).
+- **Consecuencias registradas (no bloqueantes, entran al gate):** APK 68 MB (considerar splits por ABI); dev-support networking en dex de release → habilitar R8/minify; permisos de plantilla a purgar (`READ/WRITE_EXTERNAL_STORAGE`, `SYSTEM_ALERT_WINDOW`); `allowBackup="true"` → forzar `false`; prueba de runtime en airplane mode pendiente (T-019).
+
+### T-021 — Avance de T-003: persistencia = expo-sqlite (PROVISIONAL)
+
+- **Estado:** PROVISIONAL (recomendación con evidencia parcial). Avanza desde OPEN porque T-001/T-002 quedaron resueltos.
+- **Fecha:** 2026-10-04
+- **Recomendación:** `expo-sqlite` — driver SQLite directo, MIT, vendoriza SQLite3+SQLCipher como fuentes (habilita evaluación futura de T-004 sin cambiar de librería), sin ORM, control total de SQL/migraciones/transacciones, mismo toolchain ya probado en el spike. Alternativa documentada: `op-sqlite` (MIT, JSI, más cercano al metal, bus factor individual). Descartado: WatermelonDB (sync sin backend = coste sin beneficio, P-02); cualquier ORM (sin razón demostrada, AGENTS §3).
+- **Reglas heredadas:** el dominio no conoce SQLite (puerto, una sola implementación mientras no haya segunda); toda escritura financiera en transacción atómica; migraciones versionadas y testadas; enteros int64 bindeados sin paso por float (verificar en la integración: bind/return de int64 o string, no Number).
+- **Evidencia que falta para DECIDED:** spike de integración en Fase 2 — transacción atómica con rollback, bind de int64, control de migraciones, y build F-Droid del proyecto real.
+
+---
+
+## Cómo añadir una decisión nueva
+
+```
+### T-NNN — Título
+- **Estado:** DECIDED | PROVISIONAL | OPEN
+- **Fecha:** AAAA-MM-DD
+- **Contexto:** ...
+- **Opciones:** ... (con trade-offs)
+- **Decisión:** ... (solo si DECIDED; citar fuente primaria o spike)
+- **Evidencia requerida para DECIDED:** ... (si PROVISIONAL)
+- **Pregunta exacta + spike que la resolvería:** ... (si OPEN)
+```
