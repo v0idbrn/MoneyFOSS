@@ -1,0 +1,15 @@
+{
+  "name": "moneyfoss",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "MoneyFOSS — offline-first, privacy-first personal finance (financial domain core)",
+  "scripts": {
+    "test": "node --test \"tests/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "@types/node": "^24.10.1"
+  }
+}
