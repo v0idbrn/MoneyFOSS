@@ -183,6 +183,27 @@ Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisi
 - **Reglas heredadas:** el dominio no conoce SQLite (puerto, una sola implementación mientras no haya segunda); toda escritura financiera en transacción atómica; migraciones versionadas y testadas; enteros int64 bindeados sin paso por float (verificar en la integración: bind/return de int64 o string, no Number).
 - **Evidencia que falta para DECIDED:** spike de integración en Fase 2 — transacción atómica con rollback, bind de int64, control de migraciones, y build F-Droid del proyecto real.
 
+### T-018 — Cierre de T-006: representación exacta de dinero
+
+- **Estado:** DECIDED
+- **Fecha:** 2026-10-04
+- **SUPERSEDE:** estatus PROVISIONAL de T-006 (el trade-off quedó resuelto por la Fase 1 implementada; el texto histórico de T-006 se conserva).
+- **Evidencia:** núcleo de dominio implementado y verificado (`src/domain/money.ts`, `src/domain/serialize.ts`) con 53 tests verdes (`npm test`) y typecheck estricto (`npm run typecheck`): rango int64 exacto en ambos extremos (`INT64_MIN`/`INT64_MAX`), desbordes rechazados en construcción y en decodificación de wire, parseo estricto de strings (exceso de decimales = rechazo, nunca redondeo), roundtrip parse/format exacto, montos fuera del rango seguro de Number (`9000000000000000`) sobreviven roundtrip sin pérdida.
+- **Decisión:** (a) representación de dinero en el dominio = enteros signados en minor units con rango int64, tipados como `bigint` en TypeScript con `assertInt64` en todo punto de entrada (constructor `money()`, decodificación wire); (b) en wire/backup = string decimal canónico de integer (`/^-?(0|[1-9]\d*)$/`, sin separadores, sin decimales, sin notación científica), `BigInt` en la decodificación con chequeo de rango; (c) `Number` queda prohibido para dinero en todo el código (incluye tests y parsers), regla heredada de P-07; (d) la bindeación a SQLite int64 sin pasar por Number queda como verificación obligatoria de la integración de Fase 2 (ya registrada en T-021).
+
+### T-022 — Registro de dependencias del proyecto (entrada inicial)
+
+- **Estado:** DECIDED
+- **Fecha:** 2026-10-04
+- **Contexto:** AGENTS §2 exige justificación escrita para toda dependencia; hasta hoy el repo no tenía `package.json`.
+- **Decisión (inventario completo al cierre de la Fase 1):**
+  - Dependencias runtime del núcleo: **ninguna** (`src/domain/` tiene cero imports de paquetes externos; solo JS estándar; `@types/node` aparece únicamente en tests).
+  - `typescript` (dev): typecheck estricto con `erasableSyntaxOnly` — los tests corren como `.ts` nativos en Node 24 (type stripping), sin bundler ni transpilación.
+  - `@types/node` (dev): tipos de `node:test`/`node:assert` para los tests; sin efecto en runtime.
+  - Framework de tests: **ninguno** — `node:test` nativo (escalera §3: la standard library lo hace).
+  - Red: ninguna dependencia con acceso a red (release gate de red intacto). `npm audit` al instalar: 0 vulnerabilidades (2026-10-04). Lockfile versionado.
+- **Regla para futuras entradas:** toda dependencia nueva requiere entrada en este archivo con licencia, justificación y confirmación de que no rompe el gate de red.
+
 ---
 
 ## Cómo añadir una decisión nueva
