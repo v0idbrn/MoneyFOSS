@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "MoneyFOSS",
+    "slug": "moneyfoss",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.moneyfoss.app"
+    },
+    "android": {
+      "package": "com.moneyfoss.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-foreground.png",
+        "backgroundColor": "#24020E",
+        "monochromeImage": "./assets/adaptive-monochrome.png"
+      },
+      "blockedPermissions": [
+        "android.permission.INTERNET"
+      ],
+      "predictiveBackGestureEnabled": false
+    }
+  }
+}

@@ -1,0 +1,73 @@
+import { openExpoDb } from '../../src/persistence/drivers/expo-sqlite.ts';
+import { migrate } from '../../src/persistence/migrate.ts';
+import { listAccounts, listCategories, saveAccount, saveCategory } from '../../src/persistence/repository.ts';
+import type { Db } from '../../src/persistence/db.ts';
+import type { Account, Category } from '../../src/domain/types.ts';
+
+export const DEFAULT_CATEGORIES: readonly Category[] = [
+  { id: 'cat:food', name: 'Food', kind: 'expense' },
+  { id: 'cat:transport', name: 'Transport', kind: 'expense' },
+  { id: 'cat:housing', name: 'Housing', kind: 'expense' },
+  { id: 'cat:health', name: 'Health', kind: 'expense' },
+  { id: 'cat:education', name: 'Education', kind: 'expense' },
+  { id: 'cat:entertainment', name: 'Entertainment', kind: 'expense' },
+  { id: 'cat:shopping', name: 'Shopping', kind: 'expense' },
+  { id: 'cat:other-expense', name: 'Other', kind: 'expense' },
+  { id: 'cat:salary', name: 'Salary', kind: 'income' },
+  { id: 'cat:freelance', name: 'Freelance', kind: 'income' },
+  { id: 'cat:other-income', name: 'Other', kind: 'income' },
+];
+
+let db: Db | null = null;
+
+export function getDb(): Db {
+  if (db === null) {
+    db = openExpoDb('moneyfoss.db');
+    migrate(db);
+    if (listCategories(db).length === 0) {
+      for (const category of DEFAULT_CATEGORIES) {
+        saveCategory(db, category);
+      }
+    }
+  }
+  return db;
+}
+
+export function ensureOpeningAccount(db: Db, currency: string): Account {
+  const id = `equity:opening:${currency}`;
+  const found = listAccounts(db).find((account) => account.id === id);
+  if (found !== undefined) {
+    return found;
+  }
+  const account: Account = { id, name: 'Opening balance', type: 'EQUITY', currency };
+  saveAccount(db, account);
+  return account;
+}
+
+export function eraseAllData(db: Db): void {
+  db.transaction(() => {
+    db.exec('DELETE FROM postings');
+    db.exec('DELETE FROM conversions');
+    db.exec('DELETE FROM transactions');
+    db.exec('DELETE FROM categories');
+    db.exec('DELETE FROM accounts');
+  });
+  for (const category of DEFAULT_CATEGORIES) {
+    saveCategory(db, category);
+  }
+}
+
+export function newTxId(): string {
+  return `tx-${Date.now().toString(36)}-${Math.floor(Math.random() * 2176782336).toString(36)}`;
+}
+
+export function newAccountId(): string {
+  return `acc-${Date.now().toString(36)}-${Math.floor(Math.random() * 2176782336).toString(36)}`;
+}
+
+export function todayLocal(): string {
+  const now = new Date();
+  const month = `${now.getMonth() + 1}`.padStart(2, '0');
+  const day = `${now.getDate()}`.padStart(2, '0');
+  return `${now.getFullYear()}-${month}-${day}`;
+}
