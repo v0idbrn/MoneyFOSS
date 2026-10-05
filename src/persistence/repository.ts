@@ -235,3 +235,69 @@ export function listTransactions(db: Db): Transaction[] {
   const rows = db.query('SELECT id FROM transactions ORDER BY rowid');
   return rows.map((row) => loadTransaction(db, rowString(row, 'id', 'transactions')));
 }
+
+export function hasPostings(db: Db, accountId: string): boolean {
+  const rows = db.query('SELECT 1 FROM postings WHERE account_id = ? LIMIT 1', [accountId]);
+  return rows.length > 0;
+}
+
+export function deleteAccount(db: Db, accountId: string): void {
+  if (hasPostings(db, accountId)) {
+    throw new DomainError('ACCOUNT_HAS_POSTINGS', `account ${JSON.stringify(accountId)} has postings and cannot be deleted`);
+  }
+  const rows = db.query('SELECT id FROM accounts WHERE id = ?', [accountId]);
+  if (rows.length === 0) {
+    throw new DomainError('UNKNOWN_ACCOUNT', `account ${JSON.stringify(accountId)} not found`);
+  }
+  db.exec('DELETE FROM accounts WHERE id = ?', [accountId]);
+}
+
+export function renameAccount(db: Db, accountId: string, name: string): void {
+  if (typeof name !== 'string' || name.length === 0) {
+    throw new DomainError('INVALID_ACCOUNT', 'account name must be a non-empty string');
+  }
+  const rows = db.query('SELECT id FROM accounts WHERE id = ?', [accountId]);
+  if (rows.length === 0) {
+    throw new DomainError('UNKNOWN_ACCOUNT', `account ${JSON.stringify(accountId)} not found`);
+  }
+  db.exec('UPDATE accounts SET name = ? WHERE id = ?', [name, accountId]);
+}
+
+export function hasCategoryUse(db: Db, categoryId: string): boolean {
+  const rows = db.query('SELECT 1 FROM postings WHERE category_id = ? LIMIT 1', [categoryId]);
+  return rows.length > 0;
+}
+
+export function deleteCategory(db: Db, categoryId: string): void {
+  if (hasCategoryUse(db, categoryId)) {
+    throw new DomainError('CATEGORY_IN_USE', `category ${JSON.stringify(categoryId)} is used by postings and cannot be deleted`);
+  }
+  const rows = db.query('SELECT id FROM categories WHERE id = ?', [categoryId]);
+  if (rows.length === 0) {
+    throw new DomainError('UNKNOWN_CATEGORY', `category ${JSON.stringify(categoryId)} not found`);
+  }
+  db.exec('DELETE FROM categories WHERE id = ?', [categoryId]);
+}
+
+export function renameCategory(db: Db, categoryId: string, name: string): void {
+  if (typeof name !== 'string' || name.length === 0) {
+    throw new DomainError('INVALID_CATEGORY', 'category name must be a non-empty string');
+  }
+  const rows = db.query('SELECT id FROM categories WHERE id = ?', [categoryId]);
+  if (rows.length === 0) {
+    throw new DomainError('UNKNOWN_CATEGORY', `category ${JSON.stringify(categoryId)} not found`);
+  }
+  db.exec('UPDATE categories SET name = ? WHERE id = ?', [name, categoryId]);
+}
+
+export function deleteTransaction(db: Db, id: string): void {
+  const rows = db.query('SELECT id FROM transactions WHERE id = ?', [id]);
+  if (rows.length === 0) {
+    throw new DomainError('TRANSACTION_NOT_FOUND', `transaction ${JSON.stringify(id)} not found`);
+  }
+  db.transaction(() => {
+    db.exec('DELETE FROM postings WHERE transaction_id = ?', [id]);
+    db.exec('DELETE FROM conversions WHERE transaction_id = ?', [id]);
+    db.exec('DELETE FROM transactions WHERE id = ?', [id]);
+  });
+}

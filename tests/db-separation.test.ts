@@ -63,7 +63,7 @@ test('no interpolated SQL: template literals with SQL keywords take no placehold
     const text = readFileSync(file, 'utf8');
     const templates = text.match(/`[^`]*`/g) ?? [];
     for (const template of templates) {
-      if (/SELECT|INSERT|UPDATE|DELETE|CREATE|PRAGMA|BEGIN|COMMIT|ROLLBACK/i.test(template)) {
+      if (/\bSELECT\b|\bINSERT\b|\bUPDATE\b|\bDELETE\b|\bCREATE\b|\bPRAGMA\b|\bBEGIN\b|\bCOMMIT\b|\bROLLBACK\b/i.test(template)) {
         assert.ok(!template.includes('${'), `${file} interpolates SQL: ${template.slice(0, 80)}`);
       }
     }
