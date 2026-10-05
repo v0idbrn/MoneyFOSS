@@ -44,6 +44,11 @@ function checkValueAccountPosting(posting: Posting, accountId: string, where: st
     problems.push(`${where}: unknown account ${JSON.stringify(accountId)}`);
     return;
   }
+  if (account.type !== 'ASSET' && account.type !== 'LIABILITY' && account.type !== 'EQUITY') {
+    problems.push(
+      `${where}: account ${JSON.stringify(accountId)} has unknown type ${JSON.stringify(String(account.type))}; value accounts must be ASSET|LIABILITY|EQUITY`,
+    );
+  }
   if (posting.kind === 'bridge') {
     problems.push(`${where}: bridge postings are only allowed on FX system accounts, not on account ${JSON.stringify(accountId)}`);
   }
@@ -89,6 +94,10 @@ function checkConversion(tx: Transaction, bridges: readonly Posting[], problems:
         `tx ${tx.id}: ${bridges.length} bridge posting(s) without a Conversion record (Conversion exists iff there are exactly 2 bridges)`,
       );
     }
+    return;
+  }
+  if (typeof conv !== 'object' || conv === null) {
+    problems.push(`tx ${tx.id}: conversion must be an object`);
     return;
   }
 
@@ -168,6 +177,9 @@ function checkConversion(tx: Transaction, bridges: readonly Posting[], problems:
 
 export function findTransactionProblems(tx: Transaction, refs: LedgerRefs): string[] {
   const problems: string[] = [];
+  if (typeof tx !== 'object' || tx === null) {
+    throw new DomainError('INVALID_TRANSACTION', 'transaction must be an object');
+  }
   const tag = typeof tx.id === 'string' && tx.id.length > 0 ? `tx ${tx.id}` : 'tx <no id>';
 
   if (typeof tx.id !== 'string' || tx.id.length === 0 || tx.id.length > ID_MAX_LENGTH) {
@@ -190,6 +202,10 @@ export function findTransactionProblems(tx: Transaction, refs: LedgerRefs): stri
   const sums = new Map<string, bigint>();
   tx.postings.forEach((posting, index) => {
     const where = `${tag} posting[${index}]`;
+    if (typeof posting !== 'object' || posting === null) {
+      problems.push(`${where}: posting must be an object`);
+      return;
+    }
     let usable = true;
 
     if (typeof posting.accountId !== 'string' || posting.accountId.length === 0) {
@@ -250,7 +266,9 @@ export function findTransactionProblems(tx: Transaction, refs: LedgerRefs): stri
     }
   }
 
-  const bridges = tx.postings.filter((posting) => posting.kind === 'bridge');
+  const bridges = tx.postings.filter(
+    (posting) => typeof posting === 'object' && posting !== null && posting.kind === 'bridge',
+  );
   checkConversion(tx, bridges, problems);
 
   return problems;

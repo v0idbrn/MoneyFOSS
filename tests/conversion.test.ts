@@ -1,10 +1,22 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { money } from '../src/domain/money.ts';
+import { DomainError } from '../src/domain/errors.ts';
 import { exchange, expense } from '../src/domain/operations.ts';
 import { conversionEffectiveRatio, deriveConversionDest } from '../src/domain/types.ts';
 import { RATE_1180, TODAY, acct, cat, refs } from './fixtures.ts';
 import type { Transaction } from '../src/domain/types.ts';
+
+function throwsCode(fn: () => void, code: string): void {
+  try {
+    fn();
+  } catch (error) {
+    assert.ok(error instanceof DomainError, `expected DomainError, got ${String(error)}`);
+    assert.equal(error.code, code, `expected ${code}, got ${error.code}: ${error.message}`);
+    return;
+  }
+  assert.fail(`expected DomainError ${code} but nothing was thrown`);
+}
 
 function bridgeAmount(tx: Transaction, accountId: string): bigint {
   const posting = tx.postings.find((p) => p.accountId === accountId);
@@ -108,4 +120,120 @@ test('cross-currency expense re-derives identically to the exchange path', () =>
   assert.equal(bridgeAmount(paid, 'sys:fx:USD'), 847n);
   assert.equal(paid.conversion?.fromCurrency, 'ARS');
   assert.equal(paid.conversion?.toCurrency, 'USD');
+});
+
+test('audit conversion: exact 1:1 rate stores identical integers', () => {
+  const tx = exchange({
+    refs,
+    id: 'fx-exact',
+    date: TODAY,
+    from: acct('bank-ars'),
+    to: acct('bank-usd'),
+    amount: money(1000000n, 'ARS'),
+    rate: { text: '1', quoteDirection: 'srcPerDest', rateAt: '2026-10-04T12:00:00Z', source: 'manual' },
+  });
+  assert.equal(bridgeAmount(tx, 'sys:fx:USD'), -1000000n);
+});
+
+test('audit conversion: reverse USD->ARS quotes destPerSrc', () => {
+  const tx = exchange({
+    refs,
+    id: 'fx-reverse',
+    date: TODAY,
+    from: acct('bank-usd'),
+    to: acct('bank-ars'),
+    amount: money(8475n, 'USD'),
+    rate: { text: '1180', quoteDirection: 'destPerSrc', rateAt: '2026-10-04T12:00:00Z', source: 'manual' },
+  });
+  assert.equal(bridgeAmount(tx, 'sys:fx:ARS'), -10000500n);
+  assert.equal(bridgeAmount(tx, 'sys:fx:USD'), 8475n);
+});
+
+test('audit conversion: zero and negative rates are rejected, never stored', () => {
+  for (const text of ['0', '0.00', '00.000']) {
+    throwsCode(
+      () =>
+        exchange({
+          refs,
+          id: `fx-zero-${text}`,
+          date: TODAY,
+          from: acct('bank-ars'),
+          to: acct('bank-usd'),
+          amount: money(1000000n, 'ARS'),
+          rate: { text, quoteDirection: 'srcPerDest', rateAt: '2026-10-04T12:00:00Z', source: 'manual' },
+        }),
+      'RATE_MUST_BE_POSITIVE',
+    );
+  }
+  throwsCode(
+    () =>
+      exchange({
+        refs,
+        id: 'fx-negative',
+        date: TODAY,
+        from: acct('bank-ars'),
+        to: acct('bank-usd'),
+        amount: money(1000000n, 'ARS'),
+        rate: { text: '-5', quoteDirection: 'srcPerDest', rateAt: '2026-10-04T12:00:00Z', source: 'manual' },
+      }),
+    'INVALID_RATE_FORMAT',
+  );
+  throwsCode(
+    () =>
+      exchange({
+        refs,
+        id: 'fx-long',
+        date: TODAY,
+        from: acct('bank-ars'),
+        to: acct('bank-usd'),
+        amount: money(1000000n, 'ARS'),
+        rate: { text: '1'.repeat(33), quoteDirection: 'srcPerDest', rateAt: '2026-10-04T12:00:00Z', source: 'manual' },
+      }),
+    'RATE_TEXT_TOO_LONG',
+  );
+});
+
+test('audit conversion: extreme rate overflow fails closed as INVALID_TRANSACTION', () => {
+  throwsCode(
+    () =>
+      exchange({
+        refs,
+        id: 'fx-huge',
+        date: TODAY,
+        from: acct('bank-ars'),
+        to: acct('bank-usd'),
+        amount: money(1000000000000n, 'ARS'),
+        rate: { text: '9'.repeat(32), quoteDirection: 'destPerSrc', rateAt: '2026-10-04T12:00:00Z', source: 'manual' },
+      }),
+    'INVALID_TRANSACTION',
+  );
+});
+
+test('audit conversion: extreme rate that rounds to zero is degenerate, not silent', () => {
+  throwsCode(
+    () =>
+      exchange({
+        refs,
+        id: 'fx-tiny',
+        date: TODAY,
+        from: acct('bank-ars'),
+        to: acct('bank-usd'),
+        amount: money(10000000n, 'ARS'),
+        rate: { text: '9'.repeat(32), quoteDirection: 'srcPerDest', rateAt: '2026-10-04T12:00:00Z', source: 'manual' },
+      }),
+    'DEGENERATE_CONVERSION',
+  );
+});
+
+test('audit conversion: identical inputs are byte-identical outputs', () => {
+  const input = {
+    refs,
+    id: 'fx-det',
+    date: TODAY,
+    from: acct('bank-ars'),
+    to: acct('bank-usd'),
+    amount: money(10000000n, 'ARS'),
+    rate: RATE_1180,
+  };
+  assert.deepEqual(exchange(input), exchange({ ...input, id: 'fx-det' }));
 });

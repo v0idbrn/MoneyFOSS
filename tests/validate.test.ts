@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { money } from '../src/domain/money.ts';
+import { INT64_MAX, money } from '../src/domain/money.ts';
 import { DomainError } from '../src/domain/errors.ts';
 import { exchange, expense, transfer } from '../src/domain/operations.ts';
 import { RATE_1180, TODAY, acct, cat, refs } from './fixtures.ts';
 import { findTransactionProblems, assertTransaction } from '../src/domain/validate.ts';
-import type { Posting, Transaction } from '../src/domain/types.ts';
+import type { Account, LedgerRefs, Posting, Transaction } from '../src/domain/types.ts';
 
 function problems(tx: Transaction): string[] {
   return findTransactionProblems(tx, refs);
@@ -280,4 +280,86 @@ test('assertTransaction throws one aggregated DomainError', () => {
     assert.ok(error.message.includes('valid YYYY-MM-DD'));
     assert.ok(error.message.includes('does not balance'));
   }
+});
+
+test('audit validator: non-object postings and transactions fail closed', () => {
+  const tx = validExpense();
+
+  const nullPosting: Transaction = { ...tx, postings: [null as never, tx.postings[1]!] };
+  has(problems(nullPosting), 'posting must be an object');
+
+  const numberAmount: Transaction = { ...tx, postings: [{ ...tx.postings[0]!, amount: 100 as never }, tx.postings[1]!] };
+  has(problems(numberAmount), 'amount must be an integer bigint');
+
+  const stringAmount: Transaction = { ...tx, postings: [{ ...tx.postings[0]!, amount: '1000' as never }, tx.postings[1]!] };
+  has(problems(stringAmount), 'amount must be an integer bigint');
+
+  const nullConversion: Transaction = { ...validExchange(), conversion: null as never };
+  has(problems(nullConversion), 'conversion must be an object');
+
+  try {
+    findTransactionProblems(null as never, refs);
+    assert.fail('expected throw');
+  } catch (error) {
+    assert.ok(error instanceof DomainError);
+    assert.equal(error.code, 'INVALID_TRANSACTION');
+  }
+});
+
+test('audit validator: corrupt account types in refs are rejected', () => {
+  const fakeAccount: Account = { id: 'fake', name: 'Fake', type: 'INCOME' as never, currency: 'ARS' };
+  const refs2: LedgerRefs = {
+    accounts: new Map<string, Account>([...refs.accounts, ['fake', fakeAccount]]),
+    categories: refs.categories,
+  };
+  try {
+    expense({ refs: refs2, id: 'fake-type', date: TODAY, account: fakeAccount, amount: money(1000n, 'ARS'), category: cat('food') });
+    assert.fail('expected throw');
+  } catch (error) {
+    assert.ok(error instanceof DomainError);
+    assert.equal(error.code, 'INVALID_TRANSACTION');
+    assert.ok(error.message.includes('unknown type'), `unexpected message: ${error.message}`);
+  }
+});
+
+test('audit validator: bridge on sys:expense and lowercase currency codes', () => {
+  const tx = validExpense();
+  const bridgeOnExpense: Transaction = {
+    ...tx,
+    postings: [tx.postings[0]!, { ...tx.postings[1]!, kind: 'bridge' }],
+  };
+  has(problems(bridgeOnExpense), 'bridge postings are only allowed on FX system accounts, not on sys:expense');
+
+  const lower: Transaction = {
+    ...tx,
+    postings: [
+      { ...tx.postings[0]!, currency: 'ars' },
+      { ...tx.postings[1]!, currency: 'ars' },
+    ],
+  };
+  has(problems(lower), 'unknown currency "ars"');
+});
+
+test('audit validator: int64 boundary pairs are accepted, duplicates balance', () => {
+  const edge: Transaction = {
+    id: 'edge',
+    date: TODAY,
+    postings: [
+      { accountId: 'bank-ars', currency: 'ARS', amount: INT64_MAX, kind: 'normal' },
+      { accountId: 'opening-ars', currency: 'ARS', amount: -INT64_MAX, kind: 'normal' },
+    ],
+  };
+  assert.deepEqual(problems(edge), []);
+
+  const dup: Transaction = {
+    id: 'dup',
+    date: TODAY,
+    postings: [
+      { accountId: 'cash-ars', currency: 'ARS', amount: -500n, kind: 'normal' },
+      { accountId: 'bank-ars', currency: 'ARS', amount: 500n, kind: 'normal' },
+      { accountId: 'cash-ars', currency: 'ARS', amount: -500n, kind: 'normal' },
+      { accountId: 'bank-ars', currency: 'ARS', amount: 500n, kind: 'normal' },
+    ],
+  };
+  assert.deepEqual(problems(dup), [], 'identical posting pairs still sum to zero per currency');
 });

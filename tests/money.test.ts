@@ -138,3 +138,32 @@ test('parseRatio: exact reduced ratios from user text', () => {
   throwsCode(() => parseRatio('abc'), 'INVALID_RATE_FORMAT');
   throwsCode(() => parseRatio('1'.repeat(33)), 'RATE_TEXT_TOO_LONG');
 });
+
+test('audit money: zero constructs, negative parses, never rounded', () => {
+  assert.equal(money(0n, 'ARS').amount, 0n);
+  assert.equal(parseMoney('-0.00', 'ARS').amount, 0n);
+  assert.equal(formatMoney(money(0n, 'ARS')), '0.00');
+  assert.equal(parseMoney('-5.00', 'ARS').amount, -500n);
+  assert.equal(formatMoney(money(-500n, 'ARS')), '-5.00');
+});
+
+test('audit money: addition/subtraction overflow fails closed at int64 edges', () => {
+  throwsCode(() => addMoney(money(INT64_MAX, 'ARS'), money(1n, 'ARS')), 'AMOUNT_OUT_OF_INT64_RANGE');
+  throwsCode(() => subMoney(money(INT64_MIN, 'ARS'), money(1n, 'ARS')), 'AMOUNT_OUT_OF_INT64_RANGE');
+  assert.equal(addMoney(money(INT64_MAX, 'ARS'), money(0n, 'ARS')).amount, INT64_MAX);
+  assert.equal(subMoney(money(INT64_MIN, 'ARS'), money(0n, 'ARS')).amount, INT64_MIN);
+});
+
+test('audit money: ties stay exact beyond the Number safe range', () => {
+  const over = 2n ** 53n + 1n;
+  assert.equal(deriveMinorUnits(over, 2n, 'half-even'), 4503599627370496n);
+  assert.equal(deriveMinorUnits(over, 2n, 'half-away-from-zero'), 4503599627370497n);
+  assert.equal(deriveMinorUnits(-over, 2n, 'half-even'), -4503599627370496n);
+  assert.equal(deriveMinorUnits(-over, 2n, 'half-away-from-zero'), -4503599627370497n);
+});
+
+test('audit money: negative conversion math and reduced decimal ratios', () => {
+  assert.equal(convertMinor(-1000000n, 2, 2, 1n, 1180n, 'half-away-from-zero'), -847n);
+  assert.deepEqual(parseRatio('2.50'), { num: 5n, den: 2n });
+  assert.deepEqual(parseRatio('0.10'), { num: 1n, den: 10n });
+});

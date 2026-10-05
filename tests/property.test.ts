@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatMoney, money, parseMoney } from '../src/domain/money.ts';
+import { INT64_MAX, formatMoney, money, parseMoney } from '../src/domain/money.ts';
 import { DomainError } from '../src/domain/errors.ts';
 import { cardPayment, cardPurchase, exchange, expense, income, transfer } from '../src/domain/operations.ts';
 import { findTransactionProblems } from '../src/domain/validate.ts';
@@ -151,4 +151,47 @@ test('property: random strict decimal strings survive parse/format roundtrip', (
     const formatted = formatMoney(parsed);
     assert.deepEqual(parseMoney(formatted, currency), parsed, `${currency} ${text} -> ${formatted}`);
   }
+});
+
+test('audit property: int64-edge pairs validate if and only if balanced', () => {
+  const edges = [INT64_MAX, INT64_MAX - 1n, INT64_MAX - 1000n, 2n ** 62n];
+  for (const edge of edges) {
+    const balanced: Transaction = {
+      id: `edge-ok-${edge}`,
+      date: TODAY,
+      postings: [
+        { accountId: 'bank-ars', currency: 'ARS', amount: edge, kind: 'normal' },
+        { accountId: 'opening-ars', currency: 'ARS', amount: -edge, kind: 'normal' },
+      ],
+    };
+    assert.deepEqual(findTransactionProblems(balanced, refs), [], `edge ${edge} must validate when balanced`);
+
+    const drifted: Transaction = {
+      ...balanced,
+      id: `edge-bad-${edge}`,
+      postings: [
+        { accountId: 'bank-ars', currency: 'ARS', amount: edge, kind: 'normal' },
+        { accountId: 'opening-ars', currency: 'ARS', amount: -(edge - 1n), kind: 'normal' },
+      ],
+    };
+    const found = findTransactionProblems(drifted, refs);
+    assert.ok(
+      found.some((problem) => problem.includes('does not balance')),
+      `edge ${edge} drifted by 1 must be rejected`,
+    );
+  }
+
+  const over: Transaction = {
+    id: 'edge-over',
+    date: TODAY,
+    postings: [
+      { accountId: 'bank-ars', currency: 'ARS', amount: INT64_MAX, kind: 'normal' },
+      { accountId: 'opening-ars', currency: 'ARS', amount: -(INT64_MAX + 2n), kind: 'normal' },
+    ],
+  };
+  const overFound = findTransactionProblems(over, refs);
+  assert.ok(
+    overFound.some((problem) => problem.includes('int64')),
+    'amounts outside int64 are rejected even when the sums would otherwise cancel',
+  );
 });

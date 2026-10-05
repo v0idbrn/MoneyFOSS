@@ -151,3 +151,47 @@ test('stableStringify: canonical key order, arrays kept, undefined dropped', () 
   assert.equal(first, shuffled, 'key insertion order does not change the canonical form');
   assert.equal(stableStringify(stableStringify(toWire(tx))), JSON.stringify(first));
 });
+
+test('audit wire: invalid currency passes structure but fails semantics', () => {
+  const wire: WireTransaction = JSON.parse(JSON.stringify(toWire(sampleExchange())));
+  const badCurrency = {
+    ...wire,
+    postings: wire.postings.map((posting) =>
+      posting.accountId === 'bank-ars' ? { ...posting, currency: 'XXX' } : posting,
+    ),
+  };
+  throwsCode(() => fromWire(badCurrency, refs), 'INVALID_TRANSACTION');
+});
+
+test('audit wire: tampering that preserves the sums still fails re-derivation', () => {
+  const wire: WireTransaction = JSON.parse(JSON.stringify(toWire(sampleExchange())));
+  const tampered = {
+    ...wire,
+    postings: wire.postings.map((posting) =>
+      posting.accountId === 'sys:fx:USD'
+        ? { ...posting, amount: '-8433' }
+        : posting.accountId === 'bank-usd'
+          ? { ...posting, amount: '8433' }
+          : posting,
+    ),
+  };
+  try {
+    fromWire(tampered, refs);
+    assert.fail('expected throw');
+  } catch (error) {
+    assert.ok(error instanceof DomainError);
+    assert.equal(error.code, 'INVALID_TRANSACTION');
+    assert.ok(error.message.includes('does not re-derive'), `unexpected message: ${error.message}`);
+  }
+});
+
+test('audit wire: overlong ids and explicit-undefined conversion fail closed', () => {
+  const wire: WireTransaction = JSON.parse(JSON.stringify(toWire(sampleExchange())));
+  throwsCode(() => fromWire({ ...wire, id: 'x'.repeat(129) }, refs), 'INVALID_TRANSACTION');
+  throwsCode(() => fromWire({ ...wire, conversion: undefined }, refs), 'INVALID_TRANSACTION');
+});
+
+test('audit wire: duplicate transaction ids are a repository concern, not a wire concern', () => {
+  const wire: WireTransaction = JSON.parse(JSON.stringify(toWire(sampleExchange())));
+  assert.deepEqual(fromWire(wire, refs), fromWire(JSON.parse(JSON.stringify(wire)), refs));
+});

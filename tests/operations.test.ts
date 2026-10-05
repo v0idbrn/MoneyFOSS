@@ -319,3 +319,53 @@ test('guardrails: every misuse fails loudly before validation', () => {
     'INVALID_RATE_FORMAT',
   );
 });
+
+test('audit operations: negative input amounts are rejected before touching the ledger', () => {
+  throwsCode(
+    () => expense({ refs, id: 'neg', date: TODAY, account: acct('bank-ars'), amount: money(-500n, 'ARS'), category: cat('food') }),
+    'AMOUNT_MUST_BE_POSITIVE',
+  );
+});
+
+test('audit operations: destination fee equal to the converted amount is rejected', () => {
+  throwsCode(
+    () =>
+      exchange({
+        refs,
+        id: 'fee-eq',
+        date: TODAY,
+        from: acct('bank-ars'),
+        to: acct('bank-usd'),
+        amount: money(10000000n, 'ARS'),
+        rate: RATE_1180,
+        fee: { amount: money(8475n, 'USD'), category: cat('fees') },
+      }),
+    'FEE_EXCEEDS_AMOUNT',
+  );
+});
+
+test('audit accounts: opening balance via EQUITY is a plain balanced transaction', () => {
+  const tx = buildTransaction({
+    refs,
+    id: 'opening',
+    date: TODAY,
+    postings: [
+      { accountId: 'bank-ars', currency: 'ARS', amount: 2500000n, kind: 'normal' },
+      { accountId: 'opening-ars', currency: 'ARS', amount: -2500000n, kind: 'normal' },
+    ],
+  });
+  assert.equal(tx.conversion, undefined);
+});
+
+test('audit accounts: generic transfer allows ASSET->LIABILITY movement', () => {
+  const tx = transfer({ refs, id: 'debt-move', date: TODAY, from: acct('cash-ars'), to: acct('card-ars'), amount: money(100000n, 'ARS') });
+  assert.deepEqual(view(tx), [
+    { accountId: 'cash-ars', currency: 'ARS', amount: -100000n, kind: 'normal' },
+    { accountId: 'card-ars', currency: 'ARS', amount: 100000n, kind: 'normal' },
+  ]);
+});
+
+test('audit accounts: overdraft is not a ledger rule (sufficiency lives above the domain)', () => {
+  const tx = expense({ refs, id: 'overdraft', date: TODAY, account: acct('bank-ars'), amount: money(1000000000000000n, 'ARS'), category: cat('food') });
+  assert.equal(tx.postings[0]!.amount, -1000000000000000n);
+});
