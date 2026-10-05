@@ -204,6 +204,22 @@ Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisi
   - Red: ninguna dependencia con acceso a red (release gate de red intacto). `npm audit` al instalar: 0 vulnerabilidades (2026-10-04). Lockfile versionado.
 - **Regla para futuras entradas:** toda dependencia nueva requiere entrada en este archivo con licencia, justificación y confirmación de que no rompe el gate de red.
 
+### T-023 — Phase 2: fundación de persistencia (schema, enteros, IDs, migraciones, puerto)
+
+- **Estado:** mixto — **DECIDED** (schema v1, representación de enteros, estrategia de IDs, fechas como texto, migraciones, puerto `Db`, adapter node:sqlite como driver de verificación) · **PROVISIONAL** (adapter expo-sqlite: escrito, no ejecutado). **SUPERSEDE:** nada; T-021 queda PROVISIONAL sin cambios, T-004/T-005/T-010 quedan OPEN sin cambios.
+- **Fecha:** 2026-10-04
+- **Evidencia:** capa `src/persistence/` + matriz de tests (`tests/db-*.test.ts`, `tests/db-fixtures.ts`): suite completa verde, typecheck estricto, SQLite 3.51.3 vía `node:sqlite` (stdlib, cero dependencias nuevas).
+- **DECIDED:**
+  - (a) Schema v1 (`schema_meta`, `accounts`, `categories`, `transactions`, `conversions`, `postings`): cuentas sistema `sys:*` no son filas; sin saldos almacenados; posting id `{txid}:p{index}` determinista e interno; FK en transacción/conversión/categoría pero no en `account_id`; CHECKs de enums y unicidades; `PRAGMA foreign_keys = ON` por conexión.
+  - (b) Dinero en SQLite = **TEXT canónico** (no INTEGER: expo-sqlite devuelve `number` y pierde precisión sobre 2⁵³; no REAL jamás). Rango int64 impuesto en la frontera de mapeo + validación de dominio.
+  - (c) IDs de dominio = TEXT del llamador (UUIDv4 vía `crypto` stdlib recomendado, sin paquete `uuid`); sin `AUTOINCREMENT`.
+  - (d) Fechas = TEXT verbatim, sin conversión de zona horaria; sin semántica temporal nueva.
+  - (e) Migraciones explícitas versionadas, aplicadas por migración en su propia transacción, idempotentes, sin destrucción automática; lista inyectable para tests.
+  - (f) Puerto `Db` mínimo y propio (`exec`/`query`/`transaction`/`close`, parámetros `string|number|null`, solo `?`); el dominio no importa persistencia (verificado por test estructural).
+  - (g) Escritura = validar contra refs de la DB → una transacción SQLite; lectura = filas → chequeos canónicos → validar → dominio; corrupción = fail-closed, nunca reparación silenciosa.
+- **PROVISIONAL:** `src/persistence/drivers/expo-sqlite.ts` implementa el puerto 1:1 con tipos ambientales (sin paquete instalado) pero **no ejecutado aquí** (sin runtime React Native). Evidencia que falta (la misma de T-021): atomicidad, bind int64, migraciones y build F-Droid en el proyecto real.
+- **Regla heredada:** el archivo SQLite no es el formato de backup (frontera con T-010 intacta).
+
 ---
 
 ## Cómo añadir una decisión nueva

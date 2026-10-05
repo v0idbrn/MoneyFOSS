@@ -1,17 +1,19 @@
 # MoneyFOSS — Architecture
 
-**Estado:** Fase 1 en curso. Este documento cubre lo que ya existe (núcleo de dominio puro) y las reglas que la Fase 2 debe respetar. La fuente de autoridad de decisiones sigue siendo `docs/DECISIONS.md`.
+**Estado:** Fase 2 en curso (persistencia implementada y verificada; ver `docs/PHASE2_PERSISTENCE.md`). Este documento cubre lo que ya existe y las reglas que las fases siguientes deben respetar. La fuente de autoridad de decisiones sigue siendo `docs/DECISIONS.md`.
 
 ## 1. Capas
 
 ```
 ┌─────────────────────────────────────────────┐
-│ UI (React Native + Expo CNG, T-020)         │  Fase 2+
+│ UI (React Native + Expo CNG, T-020)         │  Fase 3+
 │  - rendering, input, navegación             │
 ├─────────────────────────────────────────────┤
-│ Aplicación / puertos                        │  Fase 2+
-│  - repositorios, pipeline de import/backup  │
-│  - SQLite (expo-sqlite, T-021 PROVISIONAL)  │
+│ Aplicación / puertos           ← EXISTE    │
+│  - repositorio sobre puerto Db mínimo       │
+│  - SQLite: expo-sqlite adapter (T-021       │
+│    PROVISIONAL, no ejecutado) + driver       │
+│    node:sqlite de verificación (stdlib)     │
 ├─────────────────────────────────────────────┤
 │ Dominio puro (src/domain)      ← EXISTE    │
 │  - dinero, ledger, validación, wire         │
@@ -33,6 +35,17 @@ El dominio no conoce SQLite, React, ni `Date.now()` (las fechas entran como dato
 | `operations.ts` | constructores de operaciones (expense, income, transfer, cardPurchase, cardPayment, exchange, buildTransaction) con guardas explícitas |
 | `serialize.ts` | wire estricto (`toWire`/`fromWire`) + JSON canónico `stableStringify` |
 
+## 2b. Módulos (`src/persistence/`)
+
+| Archivo | Responsabilidad |
+|---|---|
+| `db.ts` | puerto `Db` mínimo y propio (`exec`/`query`/`transaction`/`close`, solo placeholders `?`) |
+| `schema.ts` | schema v1 + lista `MIGRATIONS` |
+| `migrate.ts` | runner determinista (versión, idempotencia, mismatch, fallo cerrado) |
+| `repository.ts` | mapping dominio↔filas con validación en escritura y lectura; sin SQL fuera de aquí |
+| `drivers/node-sqlite.ts` | driver de verificación con `node:sqlite` (stdlib, ejecutado por los tests) |
+| `drivers/expo-sqlite.ts` | adapter de producción (T-021 PROVISIONAL, no ejecutado aquí) |
+
 ## 3. Reglas vinculantes (resumen; el texto normativo vive en AGENTS/DECISIONS)
 
 1. **El ledger es la única fuente de verdad.** Saldos, patrimonio, reportes = derivados de `Σ postings`. Prohibido persistir o cachear un saldo como segunda fuente.
@@ -52,8 +65,8 @@ El dominio no conoce SQLite, React, ni `Date.now()` (las fechas entran como dato
 ## 5. Verificación
 
 ```powershell
-npm test          # node --test "tests/*.test.ts" (53 tests: invariantes, walkthrough 10 casos, wire, property)
+npm test          # node --test "tests/*.test.ts" (118 tests: dominio + persistencia)
 npm run typecheck # tsc --noEmit (strict + erasableSyntaxOnly)
 ```
 
-Tests de Fase 2 a agregar (§24): integración SQLite (bind int64, transacción atómica con rollback), pipeline de import con commit parcial, round-trip completo de backup, gates de manifest Android (§32.4).
+Tests de Fase 3+ a agregar (§24): pipeline de import con commit parcial, round-trip completo de backup, gates de manifest Android (§32.4).

@@ -23,7 +23,7 @@ test('future schema version is refused without touching data', () => {
   const db = openTestDb();
   try {
     db.exec("INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('version', '99')");
-    throwsCode(() => migrate(db), 'SCHEMA_VERSION_MISMATCH', 'newer than supported 99');
+    throwsCode(() => migrate(db), 'SCHEMA_VERSION_MISMATCH', 'newer than supported 1');
     assert.equal(getSchemaVersion(db), 99);
   } finally {
     db.close();
