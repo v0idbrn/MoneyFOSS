@@ -15,7 +15,7 @@ import {
   type Transaction,
 } from './types.ts';
 
-const ID_MAX_LENGTH = 128;
+export const ID_MAX_LENGTH = 128;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})$/;
 
