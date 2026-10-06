@@ -6,6 +6,7 @@ import { accountBalances } from '../../../src/domain/balances.ts';
 import { deleteAccount, hasPostings, renameAccount } from '../../../src/persistence/repository.ts';
 import { getDb } from '../db';
 import { useLedger } from '../state';
+import { useStrings } from '../lang';
 import { sortNewestFirst } from '../lib/filters';
 import { Amount, Body, Btn, ErrorState, Field, H1, Meta, Screen, Section, TxRow } from '../components';
 import type { RootStackParamList } from '../navtypes';
@@ -17,6 +18,7 @@ export default function AccountDetail(): React.JSX.Element {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const ledger = useLedger();
+  const { t } = useStrings();
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState('');
   const [armed, setArmed] = useState(false);
@@ -35,11 +37,12 @@ export default function AccountDetail(): React.JSX.Element {
   if (account === undefined) {
     return (
       <Screen>
-        <ErrorState message="This account no longer exists." />
+        <ErrorState message={t.accNotFound} />
       </Screen>
     );
   }
   const current = account;
+  const words = { minus: t.a11yMinus, plus: t.a11yPlus, zero: t.a11yZero };
 
   const amount = balances.get(current.id)?.get(current.currency) ?? 0n;
 
@@ -58,7 +61,7 @@ export default function AccountDetail(): React.JSX.Element {
   function remove(): void {
     if (!armed) {
       if (hasPostings(getDb(), current.id)) {
-        setError('This account has transactions and cannot be deleted. Balances stay untouched.');
+        setError(t.accBlockedDelete);
         return;
       }
       setArmed(true);
@@ -75,30 +78,31 @@ export default function AccountDetail(): React.JSX.Element {
 
   return (
     <Screen>
-      <H1>{account.name}</H1>
-      <Amount amount={amount} currency={account.currency} big />
+      <H1>{current.name}</H1>
+      <Amount amount={amount} currency={current.currency} big words={words} />
       <Meta>
-        {account.type === 'ASSET' ? 'Cash & bank' : account.type === 'LIABILITY' ? 'Card & debt' : 'Equity'} · {account.currency}
+        {current.type === 'ASSET' ? t.accountsCashBank : current.type === 'LIABILITY' ? t.accountsCardsDebts : t.accountsEquity} ·{' '}
+        {current.currency}
       </Meta>
       <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
-        <Btn title="Add transaction" onPress={() => navigation.navigate('AddTransaction', { accountId: account.id })} icon="add" />
+        <Btn title={t.accAddTx} onPress={() => navigation.navigate('AddTransaction', { accountId: current.id })} icon="add" />
       </View>
-      <Section>Manage</Section>
+      <Section>{t.accManage}</Section>
       {renaming ? (
         <View>
-          <Field label="New name" value={name} onChangeText={setName} placeholder={account.name} />
-          <Btn title="Save name" onPress={saveRename} kind="secondary" icon="check" />
+          <Field label={t.accNewName} value={name} onChangeText={setName} placeholder={current.name} />
+          <Btn title={t.accSaveName} onPress={saveRename} kind="secondary" icon="check" />
         </View>
       ) : (
-        <Btn title="Rename" onPress={() => setRenaming(true)} kind="secondary" icon="edit" />
+        <Btn title={t.accRename} onPress={() => setRenaming(true)} kind="secondary" icon="edit" />
       )}
       <View style={{ marginTop: 8 }}>
-        <Btn title={armed ? 'Tap again to confirm delete' : 'Delete account'} onPress={remove} kind="danger" icon="delete-outline" />
+        <Btn title={armed ? t.accConfirmDelete : t.accDelete} onPress={remove} kind="danger" icon="delete-outline" />
       </View>
       {error !== '' ? <Meta>{error}</Meta> : null}
-      <Section>Recent in this account ({recent.length})</Section>
+      <Section>{t.recentIn(recent.length)}</Section>
       {recent.length === 0 ? (
-        <Body>No transactions in this account yet.</Body>
+        <Body>{t.accNoRecent}</Body>
       ) : (
         recent.map((tx) => (
           <TxRow

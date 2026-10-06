@@ -38,12 +38,22 @@ export function Small({ children }: { children: React.ReactNode }): React.JSX.El
   return <Text style={styles.small}>{children}</Text>;
 }
 
-export function Amount({ amount, currency, big }: { amount: bigint; currency: string; big?: boolean }): React.JSX.Element {
+export function Amount({
+  amount,
+  currency,
+  big,
+  words,
+}: {
+  amount: bigint;
+  currency: string;
+  big?: boolean;
+  words: { minus: string; plus: string; zero: string };
+}): React.JSX.Element {
   return (
     <Text
       style={big === true ? styles.amountBig : styles.amount}
       accessibilityRole="text"
-      accessibilityLabel={accessibilityAmount(amount, currency)}
+      accessibilityLabel={accessibilityAmount(amount, currency, words)}
     >
       {formatDisplayAmount(amount, currency)} {currency}
     </Text>
@@ -290,6 +300,8 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
+    minHeight: 44,
+    justifyContent: 'center',
     marginRight: spacing.sm,
     marginBottom: spacing.sm,
   },

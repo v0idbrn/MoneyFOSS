@@ -5,7 +5,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { listCurrencies } from '../../../src/domain/currency.ts';
 import { eraseAllData, getDb } from '../db';
 import { useLedger } from '../state';
-import { Body, Btn, Divider, H1, Meta, Screen, Section } from '../components';
+import { useStrings } from '../lang';
+import type { Lang } from '../i18n';
+import { Body, Btn, Chip, Divider, H1, Meta, Screen, Section } from '../components';
 import type { RootStackParamList } from '../navtypes';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -13,6 +15,7 @@ type Nav = NativeStackNavigationProp<RootStackParamList>;
 export default function More(): React.JSX.Element {
   const navigation = useNavigation<Nav>();
   const ledger = useLedger();
+  const { t, lang, setLang } = useStrings();
   const [armed, setArmed] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -24,7 +27,7 @@ export default function More(): React.JSX.Element {
     try {
       eraseAllData(getDb());
       setArmed(false);
-      setMessage('All data erased. Default categories were restored.');
+      setMessage(t.moreErased);
       ledger.refresh();
     } catch (e) {
       setMessage(e instanceof Error ? e.message : String(e));
@@ -32,35 +35,42 @@ export default function More(): React.JSX.Element {
     }
   }
 
+  function pick(next: Lang): void {
+    setLang(next);
+    ledger.refresh();
+  }
+
   return (
     <Screen>
-      <H1>More</H1>
-      <Section>About MoneyFOSS</Section>
-      <Body>Offline-first personal finance. Your ledger lives on this device only.</Body>
-      <Meta>
-        {ledger.accounts.length} accounts · {ledger.transactions.length} transactions · {ledger.categories.length} categories
-      </Meta>
-      <Meta>Version 1.0.0 · No network · No analytics · No cloud</Meta>
+      <H1>{t.moreTitle}</H1>
+      <Section>{t.moreAbout}</Section>
+      <Body>{t.moreAboutBody}</Body>
+      <Meta>{t.countsLine(ledger.accounts.length, ledger.transactions.length, ledger.categories.length)}</Meta>
+      <Meta>{t.moreVersion}</Meta>
       <View style={{ marginTop: 8 }}>
-        <Btn title="Manage categories" onPress={() => navigation.navigate('Categories')} kind="secondary" icon="label-outline" />
+        <Btn title={t.moreManageCats} onPress={() => navigation.navigate('Categories')} kind="secondary" icon="label-outline" />
       </View>
       <Divider />
-      <Section>Currencies</Section>
-      <Meta>Amounts are stored as integers in each currency&apos;s minor units.</Meta>
+      <Section>{t.moreLanguage}</Section>
+      <View style={{ flexDirection: 'row' }}>
+        <Chip label="Español" active={lang === 'es'} onPress={() => pick('es')} />
+        <Chip label="English" active={lang === 'en'} onPress={() => pick('en')} />
+      </View>
+      <Divider />
+      <Section>{t.moreCurrencies}</Section>
+      <Meta>{t.moreCurrenciesBody}</Meta>
       {listCurrencies().map((currency) => (
         <View key={currency.code} style={{ flexDirection: 'row', paddingVertical: 6 }}>
           <Body>
             {currency.symbol} {currency.code}
           </Body>
           <View style={{ flex: 1 }} />
-          <Meta>
-            {currency.exponent} decimal{currency.exponent === 1 ? '' : 's'} · {currency.name}
-          </Meta>
+          <Meta>{t.decimalsLine(currency.exponent, currency.name)}</Meta>
         </View>
       ))}
       <Divider />
-      <Section>Danger zone</Section>
-      <Btn title={armed ? 'Tap again to erase everything' : 'Erase all data'} onPress={erase} kind="danger" icon="delete-forever" />
+      <Section>{t.moreDanger}</Section>
+      <Btn title={armed ? t.moreConfirmErase : t.moreErase} onPress={erase} kind="danger" icon="delete-forever" />
       {message !== '' ? <Meta>{message}</Meta> : null}
     </Screen>
   );

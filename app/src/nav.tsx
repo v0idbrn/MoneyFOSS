@@ -7,6 +7,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationBar } from 'expo-navigation-bar';
 import { LedgerProvider, useLedger } from './state';
+import { LangProvider, useStrings } from './lang';
 import { colors } from './theme';
 import { ErrorState, Screen } from './components';
 import type { RootStackParamList, TabParamList } from './navtypes';
@@ -29,11 +30,12 @@ const navTheme: Theme = {
 
 function Gate({ children }: { children: React.ReactNode }): React.JSX.Element {
   const ledger = useLedger();
+  const { t } = useStrings();
   if (ledger.status === 'loading') {
     return (
       <Screen>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator size="large" color={colors.highlight} />
+          <ActivityIndicator size="large" color={colors.highlight} accessibilityLabel={t.loading} />
         </View>
       </Screen>
     );
@@ -49,6 +51,7 @@ function Gate({ children }: { children: React.ReactNode }): React.JSX.Element {
 }
 
 function Tabs(): React.JSX.Element {
+  const { t } = useStrings();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -69,28 +72,28 @@ function Tabs(): React.JSX.Element {
         },
       })}
     >
-      <Tab.Screen name="Home">
+      <Tab.Screen name="Home" options={{ tabBarLabel: t.tabsHome }}>
         {() => (
           <Gate>
             <Home />
           </Gate>
         )}
       </Tab.Screen>
-      <Tab.Screen name="Accounts">
+      <Tab.Screen name="Accounts" options={{ tabBarLabel: t.tabsAccounts }}>
         {() => (
           <Gate>
             <Accounts />
           </Gate>
         )}
       </Tab.Screen>
-      <Tab.Screen name="Transactions">
+      <Tab.Screen name="Transactions" options={{ tabBarLabel: t.tabsTransactions }}>
         {() => (
           <Gate>
             <Transactions />
           </Gate>
         )}
       </Tab.Screen>
-      <Tab.Screen name="More">
+      <Tab.Screen name="More" options={{ tabBarLabel: t.tabsMore }}>
         {() => (
           <Gate>
             <More />
@@ -101,26 +104,35 @@ function Tabs(): React.JSX.Element {
   );
 }
 
+function RootNavigator(): React.JSX.Element {
+  const { t } = useStrings();
+  return (
+    <NavigationContainer theme={navTheme}>
+      <Stack.Navigator
+        screenOptions={{
+          headerStyle: { backgroundColor: colors.backgroundElevated },
+          headerTintColor: colors.textPrimary,
+          headerTitleStyle: { color: colors.textPrimary },
+        }}
+      >
+        <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
+        <Stack.Screen name="AccountDetail" component={AccountDetail} options={{ title: t.accTitle }} />
+        <Stack.Screen name="TransactionDetail" component={TransactionDetail} options={{ title: t.detailTitle }} />
+        <Stack.Screen name="AddTransaction" component={AddTransaction} options={{ title: t.entryTitle, presentation: 'modal' }} />
+        <Stack.Screen name="Categories" component={Categories} options={{ title: t.catsTitle }} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
 export default function App(): React.JSX.Element {
   return (
     <LedgerProvider>
-      <StatusBar style="light" />
-      <NavigationBar style="dark" />
-      <NavigationContainer theme={navTheme}>
-        <Stack.Navigator
-          screenOptions={{
-            headerStyle: { backgroundColor: colors.backgroundElevated },
-            headerTintColor: colors.textPrimary,
-            headerTitleStyle: { color: colors.textPrimary },
-          }}
-        >
-          <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
-          <Stack.Screen name="AccountDetail" component={AccountDetail} options={{ title: 'Account' }} />
-          <Stack.Screen name="TransactionDetail" component={TransactionDetail} options={{ title: 'Details' }} />
-          <Stack.Screen name="AddTransaction" component={AddTransaction} options={{ title: 'Add transaction', presentation: 'modal' }} />
-          <Stack.Screen name="Categories" component={Categories} options={{ title: 'Categories' }} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <LangProvider>
+        <StatusBar style="light" />
+        <NavigationBar style="dark" />
+        <RootNavigator />
+      </LangProvider>
     </LedgerProvider>
   );
 }

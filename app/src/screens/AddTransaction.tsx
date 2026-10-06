@@ -9,26 +9,21 @@ import { saveTransaction } from '../../../src/persistence/repository.ts';
 import type { Account, Category, Transaction } from '../../../src/domain/types.ts';
 import { getDb, newTxId, todayLocal } from '../db';
 import { useLedger } from '../state';
+import { useStrings } from '../lang';
 import { normalizeAmountInput } from '../lib/format';
-import { Btn, Chip, ErrorState, Field, H1, Meta, Screen, Section } from '../components';
+import { Btn, Chip, ErrorState, Field, H1, Meta, Screen } from '../components';
 import type { EntryKind, RootStackParamList } from '../navtypes';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 type Route = RouteProp<RootStackParamList, 'AddTransaction'>;
 
-const KINDS: readonly { value: EntryKind; label: string }[] = [
-  { value: 'expense', label: 'Expense' },
-  { value: 'income', label: 'Income' },
-  { value: 'transfer', label: 'Transfer' },
-  { value: 'card-purchase', label: 'Card purchase' },
-  { value: 'card-payment', label: 'Card payment' },
-  { value: 'convert', label: 'Convert' },
-];
+const KIND_VALUES: readonly EntryKind[] = ['expense', 'income', 'transfer', 'card-purchase', 'card-payment', 'convert'];
 
 export default function AddTransaction(): React.JSX.Element {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const ledger = useLedger();
+  const { t } = useStrings();
 
   const [kind, setKind] = useState<EntryKind>(route.params?.kind ?? 'expense');
   const [amount, setAmount] = useState('');
@@ -54,10 +49,10 @@ export default function AddTransaction(): React.JSX.Element {
   const expenseCats = ledger.categories.filter((c) => c.kind === 'expense');
   const incomeCats = ledger.categories.filter((c) => c.kind === 'income');
 
-  function needAccount(id: string, what: string): Account {
+  function needAccount(id: string, message: string): Account {
     const account = accounts.get(id);
     if (account === undefined) {
-      throw new Error(`Choose ${what}.`);
+      throw new Error(message);
     }
     return account;
   }
@@ -65,23 +60,23 @@ export default function AddTransaction(): React.JSX.Element {
   function needCategory(id: string, kind: 'expense' | 'income'): Category {
     const category = ledger.categories.find((c) => c.id === id && c.kind === kind);
     if (category === undefined) {
-      throw new Error(`Choose a ${kind} category.`);
+      throw new Error(kind === 'expense' ? t.needExpenseCat : t.needIncomeCat);
     }
     return category;
   }
 
-  function parseAmount(text: string, currency: string, what: string): Money {
+  function parseAmount(text: string, currency: string): Money {
     const normalized = normalizeAmountInput(text);
     if (normalized === '') {
-      throw new Error(`Enter ${what}.`);
+      throw new Error(t.needAmount);
     }
     return parseMoney(normalized, currency);
   }
 
-  function rateInput(fromCurrency: string, toCurrency: string) {
+  function rateInput() {
     const text = rate.trim();
     if (text === '') {
-      throw new Error('Enter the exchange rate.');
+      throw new Error(t.needRate);
     }
     return {
       text,
@@ -96,83 +91,82 @@ export default function AddTransaction(): React.JSX.Element {
     return trimmed === '' ? undefined : trimmed;
   }
 
+  function refs(): { accounts: ReadonlyMap<string, Account>; categories: ReadonlyMap<string, Category> } {
+    return { accounts, categories: new Map(ledger.categories.map((c) => [c.id, c])) };
+  }
+
   function buildTx(): Transaction {
     const id = newTxId();
     if (kind === 'expense' || kind === 'card-purchase') {
-      const account = needAccount(accountId, 'an account');
+      const account = needAccount(accountId, t.needAccount);
       if (kind === 'card-purchase' && account.type !== 'LIABILITY') {
-        throw new Error('A card purchase needs a liability (card) account.');
+        throw new Error(t.cardNeedsLiability);
       }
       const category = needCategory(categoryId, 'expense');
-      const refs = { accounts, categories: new Map(ledger.categories.map((c) => [c.id, c])) };
       if (foreignPrice) {
-        const price = parseAmount(priceAmount, priceCurrency, 'the price');
+        const price = parseAmount(priceAmount, priceCurrency);
         const input = {
-          refs,
+          refs: refs(),
           id,
           date,
           memo: memo(),
           account,
           amount: price,
           category,
-          rate: rateInput(priceCurrency, account.currency),
+          rate: rateInput(),
         };
         return expense(input);
       }
       const input = {
-        refs,
+        refs: refs(),
         id,
         date,
         memo: memo(),
         account,
-        amount: parseAmount(amount, account.currency, 'an amount'),
+        amount: parseAmount(amount, account.currency),
         category,
       };
       return kind === 'card-purchase' ? cardPurchase(input) : expense(input);
     }
     if (kind === 'income') {
-      const account = needAccount(accountId, 'an account');
-      const refs = { accounts, categories: new Map(ledger.categories.map((c) => [c.id, c])) };
+      const account = needAccount(accountId, t.needAccount);
       return income({
-        refs,
+        refs: refs(),
         id,
         date,
         memo: memo(),
         account,
-        amount: parseAmount(amount, account.currency, 'an amount'),
+        amount: parseAmount(amount, account.currency),
         category: needCategory(categoryId, 'income'),
       });
     }
     if (kind === 'transfer') {
-      const from = needAccount(accountId, 'the source account');
-      const to = needAccount(toAccountId, 'the destination account');
-      const refs = { accounts, categories: new Map(ledger.categories.map((c) => [c.id, c])) };
-      return transfer({ refs, id, date, memo: memo(), from, to, amount: parseAmount(amount, from.currency, 'an amount') });
+      const from = needAccount(accountId, t.needFrom);
+      const to = needAccount(toAccountId, t.needTo);
+      return transfer({ refs: refs(), id, date, memo: memo(), from, to, amount: parseAmount(amount, from.currency) });
     }
     if (kind === 'card-payment') {
-      const from = needAccount(accountId, 'the paying account');
-      const to = needAccount(toAccountId, 'the card');
-      const refs = { accounts, categories: new Map(ledger.categories.map((c) => [c.id, c])) };
-      return cardPayment({ refs, id, date, memo: memo(), from, to, amount: parseAmount(amount, from.currency, 'an amount') });
+      const from = needAccount(accountId, t.needFrom);
+      const to = needAccount(toAccountId, t.needTo);
+      return cardPayment({ refs: refs(), id, date, memo: memo(), from, to, amount: parseAmount(amount, from.currency) });
     }
-    const from = needAccount(accountId, 'the source account');
-    const to = needAccount(toAccountId, 'the destination account');
-    const refs = { accounts, categories: new Map(ledger.categories.map((c) => [c.id, c])) };
-    const converted = parseAmount(amount, from.currency, 'an amount');
+    const from = needAccount(accountId, t.needFrom);
+    const to = needAccount(toAccountId, t.needTo);
+    const converted = parseAmount(amount, from.currency);
     if (!feeOn) {
-      return exchange({ refs, id, date, memo: memo(), from, to, amount: converted, rate: rateInput(from.currency, to.currency) });
+      return exchange({ refs: refs(), id, date, memo: memo(), from, to, amount: converted, rate: rateInput() });
     }
     const feeCurrency = feeSide === 'from' ? from.currency : to.currency;
     return exchange({
-      refs,
+      refs: refs(),
       id,
       date,
       memo: memo(),
       from,
       to,
       amount: converted,
-      rate: rateInput(from.currency, to.currency),
-      fee: { amount: parseAmount(feeAmount, feeCurrency, 'the fee'), category: needCategory(feeCategoryId, 'expense') },
+      rate: rateInput(),
+      fee: { amount: parseAmount(feeAmount, feeCurrency), category: needCategory(feeCategoryId, 'expense') },
     });
   }
 
@@ -211,31 +205,31 @@ export default function AddTransaction(): React.JSX.Element {
 
   return (
     <Screen>
-      <H1>Add transaction</H1>
-      <Meta>Type</Meta>
+      <H1>{t.entryTitle}</H1>
+      <Meta>{t.entryType}</Meta>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-        {KINDS.map((option) => (
-          <Chip key={option.value} label={option.label} active={kind === option.value} onPress={() => setKind(option.value)} />
+        {KIND_VALUES.map((value) => (
+          <Chip key={value} label={t.entryKinds[value]} active={kind === value} onPress={() => setKind(value)} />
         ))}
       </View>
 
       {(kind === 'expense' || kind === 'card-purchase' || kind === 'income') && (
         <>
-          <Meta>Account</Meta>
+          <Meta>{t.entryAccount}</Meta>
           {accountChips(kind === 'card-purchase' ? liabilities : spendable, accountId, setAccountId)}
         </>
       )}
       {(kind === 'transfer' || kind === 'card-payment' || kind === 'convert') && (
         <>
-          <Meta>From</Meta>
+          <Meta>{t.entryFrom}</Meta>
           {accountChips(spendable, accountId, setAccountId)}
-          <Meta>To</Meta>
+          <Meta>{t.entryTo}</Meta>
           {accountChips(kind === 'card-payment' ? liabilities : spendable, toAccountId, setToAccountId)}
         </>
       )}
 
       <Field
-        label={kind === 'convert' ? `Amount in ${pickedAccount?.currency ?? '…'}` : `Amount${pickedAccount !== undefined ? ` in ${pickedAccount.currency}` : ''}`}
+        label={t.amountIn(pickedAccount?.currency ?? null)}
         value={amount}
         onChangeText={setAmount}
         placeholder="0.00"
@@ -244,16 +238,16 @@ export default function AddTransaction(): React.JSX.Element {
 
       {(kind === 'expense' || kind === 'card-purchase') && (
         <>
-          <Meta>Priced in another currency?</Meta>
+          <Meta>{t.entryForeign}</Meta>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-            <Chip label="No" active={!foreignPrice} onPress={() => setForeignPrice(false)} />
-            <Chip label="Yes" active={foreignPrice} onPress={() => setForeignPrice(true)} />
+            <Chip label={t.no} active={!foreignPrice} onPress={() => setForeignPrice(false)} />
+            <Chip label={t.yes} active={foreignPrice} onPress={() => setForeignPrice(true)} />
           </View>
         </>
       )}
       {foreignPrice && (kind === 'expense' || kind === 'card-purchase') && (
         <>
-          <Meta>Price currency</Meta>
+          <Meta>{t.entryPriceCurrency}</Meta>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
             {listCurrencies()
               .filter((c) => c.code !== pickedAccount?.currency)
@@ -261,61 +255,61 @@ export default function AddTransaction(): React.JSX.Element {
                 <Chip key={c.code} label={`${c.symbol} ${c.code}`} active={priceCurrency === c.code} onPress={() => setPriceCurrency(c.code)} />
               ))}
           </View>
-          <Field label={`Price in ${priceCurrency}`} value={priceAmount} onChangeText={setPriceAmount} placeholder="0.00" keyboardType="decimal-pad" />
+          <Field label={t.priceIn(priceCurrency)} value={priceAmount} onChangeText={setPriceAmount} placeholder="0.00" keyboardType="decimal-pad" />
         </>
       )}
 
       {(kind === 'expense' || kind === 'card-purchase') && (
         <>
-          <Meta>Category</Meta>
+          <Meta>{t.entryCategory}</Meta>
           {categoryChips(expenseCats, categoryId, setCategoryId)}
         </>
       )}
       {kind === 'income' && (
         <>
-          <Meta>Category</Meta>
+          <Meta>{t.entryCategory}</Meta>
           {categoryChips(incomeCats, categoryId, setCategoryId)}
         </>
       )}
 
       {(kind === 'convert' || foreignPrice) && (
         <>
-          <Field label="Exchange rate" value={rate} onChangeText={setRate} placeholder="1180" keyboardType="decimal-pad" />
-          <Meta>Rate meaning</Meta>
+          <Field label={t.entryRate} value={rate} onChangeText={setRate} placeholder="1180" keyboardType="decimal-pad" />
+          <Meta>{t.entryRateMeaning}</Meta>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-            <Chip label="Source per destination" active={!inverted} onPress={() => setInverted(false)} />
-            <Chip label="Destination per source" active={inverted} onPress={() => setInverted(true)} />
+            <Chip label={t.dirSrcPerDest} active={!inverted} onPress={() => setInverted(false)} />
+            <Chip label={t.dirDestPerSrc} active={inverted} onPress={() => setInverted(true)} />
           </View>
         </>
       )}
 
       {kind === 'convert' && (
         <>
-          <Meta>Fee?</Meta>
+          <Meta>{t.entryFeeQ}</Meta>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-            <Chip label="No fee" active={!feeOn} onPress={() => setFeeOn(false)} />
-            <Chip label="With fee" active={feeOn} onPress={() => setFeeOn(true)} />
+            <Chip label={t.entryNoFee} active={!feeOn} onPress={() => setFeeOn(false)} />
+            <Chip label={t.entryWithFee} active={feeOn} onPress={() => setFeeOn(true)} />
           </View>
         </>
       )}
       {kind === 'convert' && feeOn && (
         <>
-          <Field label="Fee amount" value={feeAmount} onChangeText={setFeeAmount} placeholder="0.00" keyboardType="decimal-pad" />
-          <Meta>Fee currency</Meta>
+          <Field label={t.entryFeeAmount} value={feeAmount} onChangeText={setFeeAmount} placeholder="0.00" keyboardType="decimal-pad" />
+          <Meta>{t.entryFeeCurrency}</Meta>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-            <Chip label="Source" active={feeSide === 'from'} onPress={() => setFeeSide('from')} />
-            <Chip label="Destination" active={feeSide === 'to'} onPress={() => setFeeSide('to')} />
+            <Chip label={t.entryFeeSrc} active={feeSide === 'from'} onPress={() => setFeeSide('from')} />
+            <Chip label={t.entryFeeDest} active={feeSide === 'to'} onPress={() => setFeeSide('to')} />
           </View>
-          <Meta>Fee category</Meta>
+          <Meta>{t.entryFeeCategory}</Meta>
           {categoryChips(expenseCats, feeCategoryId, setFeeCategoryId)}
         </>
       )}
 
-      <Field label="Date" value={date} onChangeText={setDate} placeholder="YYYY-MM-DD" maxLength={10} />
-      <Field label="Note (optional)" value={note} onChangeText={setNote} placeholder="What was this?" />
+      <Field label={t.entryDate} value={date} onChangeText={setDate} placeholder={t.entryDatePh} maxLength={10} />
+      <Field label={t.entryNote} value={note} onChangeText={setNote} placeholder={t.entryNotePh} />
 
       {error !== '' ? <ErrorState message={error} /> : null}
-      <Btn title="Save transaction" onPress={save} icon="check" />
+      <Btn title={t.entrySave} onPress={save} icon="check" />
     </Screen>
   );
 }

@@ -5,14 +5,6 @@ export type TxKind = 'expense' | 'income' | 'transfer' | 'card-payment' | 'conve
 
 export const TX_KINDS: readonly TxKind[] = ['expense', 'income', 'transfer', 'card-payment', 'conversion'];
 
-export const TX_KIND_LABELS: Record<TxKind, string> = {
-  expense: 'Expense',
-  income: 'Income',
-  transfer: 'Transfer',
-  'card-payment': 'Card payment',
-  conversion: 'Conversion',
-};
-
 export interface TxAmountLine {
   readonly amount: bigint;
   readonly currency: string;

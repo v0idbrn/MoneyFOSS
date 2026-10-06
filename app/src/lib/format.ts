@@ -36,7 +36,12 @@ export function normalizeAmountInput(text: string): string {
   return trimmed;
 }
 
-export function accessibilityAmount(amount: bigint, currency: string, locale?: string): string {
-  const direction = amount < 0n ? 'minus' : amount > 0n ? 'plus' : 'zero';
+export function accessibilityAmount(
+  amount: bigint,
+  currency: string,
+  words: { minus: string; plus: string; zero: string },
+  locale?: string,
+): string {
+  const direction = amount < 0n ? words.minus : amount > 0n ? words.plus : words.zero;
   return `${direction} ${formatDisplayAmount(amount < 0n ? -amount : amount, currency, locale)} ${currency}`;
 }

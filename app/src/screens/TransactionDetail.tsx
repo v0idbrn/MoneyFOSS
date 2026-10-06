@@ -5,7 +5,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { deleteTransaction } from '../../../src/persistence/repository.ts';
 import { getDb } from '../db';
 import { useLedger } from '../state';
-import { TX_KIND_LABELS, describeTransaction } from '../lib/describe';
+import { useStrings } from '../lang';
+import { describeTransaction } from '../lib/describe';
 import { formatDisplayAmount } from '../lib/format';
 import { Amount, Body, Btn, Divider, ErrorState, H1, Meta, Screen, Section } from '../components';
 import type { RootStackParamList } from '../navtypes';
@@ -17,22 +18,24 @@ export default function TransactionDetail(): React.JSX.Element {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const ledger = useLedger();
+  const { t } = useStrings();
   const [showPostings, setShowPostings] = useState(false);
   const [armed, setArmed] = useState(false);
   const [error, setError] = useState('');
 
   const accounts = useMemo(() => new Map(ledger.accounts.map((a) => [a.id, a])), [ledger.accounts]);
   const categories = useMemo(() => new Map(ledger.categories.map((c) => [c.id, c])), [ledger.categories]);
-  const tx = ledger.transactions.find((t) => t.id === route.params.txId);
+  const tx = ledger.transactions.find((item) => item.id === route.params.txId);
 
   if (tx === undefined) {
     return (
       <Screen>
-        <ErrorState message="This transaction no longer exists." />
+        <ErrorState message={t.accNotFound} />
       </Screen>
     );
   }
   const current = tx;
+  const words = { minus: t.a11yMinus, plus: t.a11yPlus, zero: t.a11yZero };
 
   const view = describeTransaction(current, accounts, categories);
   const conversion = current.conversion;
@@ -54,32 +57,32 @@ export default function TransactionDetail(): React.JSX.Element {
 
   return (
     <Screen>
-      <Meta>{TX_KIND_LABELS[view.kind]}</Meta>
+      <Meta>{t.kinds[view.kind]}</Meta>
       <H1>{view.title}</H1>
       {view.amounts.map((line, index) => (
-        <Amount key={`${line.currency}-${String(index)}`} amount={line.amount} currency={line.currency} big />
+        <Amount key={`${line.currency}-${String(index)}`} amount={line.amount} currency={line.currency} big words={words} />
       ))}
       <Meta>{current.date}</Meta>
       {current.memo !== undefined && current.memo !== '' ? <Body>“{current.memo}”</Body> : null}
       <Divider />
-      <Section>What happened</Section>
+      <Section>{t.detailWhat}</Section>
       <Body>{view.detail}</Body>
       {conversion !== undefined ? (
         <View>
-          <Section>Conversion</Section>
+          <Section>{t.detailConversion}</Section>
           <Body>
-            {conversion.fromCurrency} → {conversion.toCurrency} at {conversion.rateText} (
-            {conversion.quoteDirection === 'srcPerDest' ? 'source per destination' : 'destination per source'})
+            {conversion.fromCurrency} → {conversion.toCurrency} · {conversion.rateText} (
+            {conversion.quoteDirection === 'srcPerDest' ? t.dirSrcPerDest : t.dirDestPerSrc})
           </Body>
           <Meta>
-            Source {conversion.source} · {conversion.rateAt} · {conversion.roundingMode}
+            {conversion.source} · {conversion.rateAt} · {conversion.roundingMode}
           </Meta>
-          {view.hasFee ? <Body>Includes a fee recorded as an expense.</Body> : null}
+          {view.hasFee ? <Body>{t.detailFee}</Body> : null}
         </View>
       ) : null}
-      <Section>Accounting details</Section>
+      <Section>{t.detailAccounting}</Section>
       <Btn
-        title={showPostings ? 'Hide postings' : 'Show postings'}
+        title={showPostings ? t.detailHide : t.detailShow}
         onPress={() => setShowPostings(!showPostings)}
         kind="secondary"
         icon="receipt-long"
@@ -88,7 +91,7 @@ export default function TransactionDetail(): React.JSX.Element {
         ? current.postings.map((posting, index) => (
             <View key={`${posting.accountId}-${String(index)}`}>
               <Body>
-                {posting.accountId} {posting.kind === 'bridge' ? '(bridge)' : ''}
+                {posting.accountId} {posting.kind === 'bridge' ? t.detailBridge : ''}
               </Body>
               <Meta>
                 {formatDisplayAmount(posting.amount, posting.currency)} {posting.currency}
@@ -98,7 +101,7 @@ export default function TransactionDetail(): React.JSX.Element {
           ))
         : null}
       <Divider />
-      <Btn title={armed ? 'Tap again to confirm delete' : 'Delete transaction'} onPress={remove} kind="danger" icon="delete-outline" />
+      <Btn title={armed ? t.detailConfirmDelete : t.detailDelete} onPress={remove} kind="danger" icon="delete-outline" />
       {error !== '' ? <Meta>{error}</Meta> : null}
     </Screen>
   );
