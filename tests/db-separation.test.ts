@@ -29,6 +29,7 @@ function importSpecifiers(file: string): string[] {
 
 const domainFiles = srcFiles('src/domain');
 const persistenceFiles = srcFiles('src/persistence');
+const appFiles = srcFiles('app/src');
 
 test('domain imports are strictly relative: no persistence, sqlite, expo or react', () => {
   assert.ok(domainFiles.length > 0);
@@ -76,6 +77,34 @@ test('no logging and no network surface in src', () => {
     assert.ok(!text.includes('console.'), `${file} logs`);
     for (const token of ['fetch(', 'XMLHttpRequest', 'WebSocket', 'child_process']) {
       assert.ok(!text.includes(token), `${file} contains ${token}`);
+    }
+  }
+});
+
+test('app imports only the UI stack, the domain and the persistence port', () => {
+  const allowed = new Set([
+    'react',
+    'react-native',
+    'expo',
+    'expo-status-bar',
+    'expo-navigation-bar',
+    'expo-sqlite',
+    '@expo/vector-icons',
+    '@react-navigation/native',
+    '@react-navigation/bottom-tabs',
+    '@react-navigation/native-stack',
+  ]);
+  assert.ok(appFiles.length > 0);
+  for (const file of appFiles) {
+    const text = readFileSync(file, 'utf8');
+    assert.ok(!text.includes('console.'), `${file} logs`);
+    assert.ok(!text.includes('import('), `${file} uses a dynamic import`);
+    for (const token of ['fetch(', 'XMLHttpRequest', 'WebSocket']) {
+      assert.ok(!text.includes(token), `${file} contains ${token}`);
+    }
+    for (const specifier of importSpecifiers(file)) {
+      const ok = specifier.startsWith('.') || allowed.has(specifier);
+      assert.ok(ok, `${file} imports unexpected module ${JSON.stringify(specifier)}`);
     }
   }
 });
