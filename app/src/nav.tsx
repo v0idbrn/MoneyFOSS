@@ -17,6 +17,7 @@ import More from './screens/More';
 import AccountDetail from './screens/AccountDetail';
 import TransactionDetail from './screens/TransactionDetail';
 import AddTransaction from './screens/AddTransaction';
+import Categories from './screens/Categories';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -117,6 +118,7 @@ export default function App(): React.JSX.Element {
           <Stack.Screen name="AccountDetail" component={AccountDetail} options={{ title: 'Account' }} />
           <Stack.Screen name="TransactionDetail" component={TransactionDetail} options={{ title: 'Details' }} />
           <Stack.Screen name="AddTransaction" component={AddTransaction} options={{ title: 'Add transaction', presentation: 'modal' }} />
+          <Stack.Screen name="Categories" component={Categories} options={{ title: 'Categories' }} />
         </Stack.Navigator>
       </NavigationContainer>
     </LedgerProvider>

@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { listCurrencies } from '../../../src/domain/currency.ts';
 import { eraseAllData, getDb } from '../db';
 import { useLedger } from '../state';
 import { Body, Btn, Divider, H1, Meta, Screen, Section } from '../components';
+import type { RootStackParamList } from '../navtypes';
+
+type Nav = NativeStackNavigationProp<RootStackParamList>;
 
 export default function More(): React.JSX.Element {
+  const navigation = useNavigation<Nav>();
   const ledger = useLedger();
   const [armed, setArmed] = useState(false);
   const [message, setMessage] = useState('');
@@ -35,6 +41,9 @@ export default function More(): React.JSX.Element {
         {ledger.accounts.length} accounts · {ledger.transactions.length} transactions · {ledger.categories.length} categories
       </Meta>
       <Meta>Version 1.0.0 · No network · No analytics · No cloud</Meta>
+      <View style={{ marginTop: 8 }}>
+        <Btn title="Manage categories" onPress={() => navigation.navigate('Categories')} kind="secondary" icon="label-outline" />
+      </View>
       <Divider />
       <Section>Currencies</Section>
       <Meta>Amounts are stored as integers in each currency&apos;s minor units.</Meta>
