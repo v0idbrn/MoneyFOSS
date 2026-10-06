@@ -1,5 +1,7 @@
 import { SYSTEM_EXPENSE_ID, SYSTEM_INCOME_ID } from '../../../src/domain/types.ts';
 import type { Account, Category, Transaction } from '../../../src/domain/types.ts';
+import { displayCategoryName } from './categories.ts';
+import type { Dict } from '../i18n.ts';
 
 export type TxKind = 'expense' | 'income' | 'transfer' | 'card-payment' | 'conversion';
 
@@ -26,6 +28,7 @@ export function describeTransaction(
   tx: Transaction,
   accounts: ReadonlyMap<string, Account>,
   categories: ReadonlyMap<string, Category>,
+  t?: Dict,
 ): TxView {
   const valuePostings = tx.postings.filter((posting) => posting.kind === 'normal' && accounts.has(posting.accountId));
   const amounts: TxAmountLine[] = valuePostings.map((posting) => ({ amount: posting.amount, currency: posting.currency }));
@@ -46,7 +49,8 @@ export function describeTransaction(
 
   const expensePosting = tx.postings.find((posting) => posting.accountId === SYSTEM_EXPENSE_ID);
   if (expensePosting !== undefined) {
-    const category = expensePosting.categoryId !== undefined ? categories.get(expensePosting.categoryId)?.name : undefined;
+    const stored = expensePosting.categoryId !== undefined ? categories.get(expensePosting.categoryId) : undefined;
+    const category = stored !== undefined && t !== undefined ? displayCategoryName(stored, t) : stored?.name;
     const where = valuePostings.map((posting) => accountName(accounts, posting.accountId)).join(', ');
     return {
       kind: 'expense',
@@ -59,7 +63,8 @@ export function describeTransaction(
 
   const incomePosting = tx.postings.find((posting) => posting.accountId === SYSTEM_INCOME_ID);
   if (incomePosting !== undefined) {
-    const category = incomePosting.categoryId !== undefined ? categories.get(incomePosting.categoryId)?.name : undefined;
+    const stored = incomePosting.categoryId !== undefined ? categories.get(incomePosting.categoryId) : undefined;
+    const category = stored !== undefined && t !== undefined ? displayCategoryName(stored, t) : stored?.name;
     const where = valuePostings.map((posting) => accountName(accounts, posting.accountId)).join(', ');
     return {
       kind: 'income',

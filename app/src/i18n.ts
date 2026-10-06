@@ -1,3 +1,5 @@
+import type { SeedCategoryId } from './lib/seed-categories.ts';
+
 export type Lang = 'es' | 'en';
 
 export interface TxKindLabels {
@@ -151,6 +153,7 @@ export interface Dict {
   readonly a11yMinus: string;
   readonly a11yPlus: string;
   readonly a11yZero: string;
+  readonly seedCategoryNames: Record<SeedCategoryId, string>;
 }
 
 const es: Dict = {
@@ -296,6 +299,19 @@ const es: Dict = {
   a11yMinus: 'menos',
   a11yPlus: 'más',
   a11yZero: 'cero',
+  seedCategoryNames: {
+    'cat:food': 'Comida',
+    'cat:transport': 'Transporte',
+    'cat:housing': 'Vivienda',
+    'cat:health': 'Salud',
+    'cat:education': 'Educación',
+    'cat:entertainment': 'Entretenimiento',
+    'cat:shopping': 'Compras',
+    'cat:other-expense': 'Otro',
+    'cat:salary': 'Salario',
+    'cat:freelance': 'Freelance',
+    'cat:other-income': 'Otro',
+  },
 };
 
 const en: Dict = {
@@ -441,6 +457,19 @@ const en: Dict = {
   a11yMinus: 'minus',
   a11yPlus: 'plus',
   a11yZero: 'zero',
+  seedCategoryNames: {
+    'cat:food': 'Food',
+    'cat:transport': 'Transport',
+    'cat:housing': 'Housing',
+    'cat:health': 'Health',
+    'cat:education': 'Education',
+    'cat:entertainment': 'Entertainment',
+    'cat:shopping': 'Shopping',
+    'cat:other-expense': 'Other',
+    'cat:salary': 'Salary',
+    'cat:freelance': 'Freelance',
+    'cat:other-income': 'Other',
+  },
 };
 
 export const STRINGS: Record<Lang, Dict> = { es, en };

@@ -5,6 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useLedger } from '../state';
 import { useStrings } from '../lang';
 import { EMPTY_FILTER, activeFilterCount, filterTransactions, sortNewestFirst, type TxFilter } from '../lib/filters';
+import { displayCategoryName } from '../lib/categories';
 import { TX_KINDS } from '../lib/describe';
 import { Body, Btn, Chip, EmptyState, Fab, Field, H1, Meta, Screen, TxRow } from '../components';
 import type { RootStackParamList } from '../navtypes';
@@ -66,7 +67,7 @@ export default function Transactions(): React.JSX.Element {
           {ledger.categories.map((category) => (
             <Chip
               key={category.id}
-              label={category.name}
+              label={displayCategoryName(category, t)}
               active={filter.categoryId === category.id}
               onPress={() => set({ categoryId: category.id })}
             />
@@ -100,8 +101,9 @@ export default function Transactions(): React.JSX.Element {
               <TxRow
                 key={tx.id}
                 tx={tx}
-                accounts={accounts}
-                categories={categories}
+              accounts={accounts}
+              categories={categories}
+              t={t}
                 onPress={() => navigation.navigate('TransactionDetail', { txId: tx.id })}
               />
             ))}

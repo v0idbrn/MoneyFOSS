@@ -11,6 +11,7 @@ import { getDb, newTxId, todayLocal } from '../db';
 import { useLedger } from '../state';
 import { useStrings } from '../lang';
 import { normalizeAmountInput } from '../lib/format';
+import { displayCategoryName } from '../lib/categories';
 import { Btn, Chip, ErrorState, Field, H1, Meta, Screen } from '../components';
 import type { EntryKind, RootStackParamList } from '../navtypes';
 
@@ -195,7 +196,7 @@ export default function AddTransaction(): React.JSX.Element {
     return (
       <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
         {list.map((category) => (
-          <Chip key={category.id} label={category.name} active={value === category.id} onPress={() => onPick(category.id)} />
+          <Chip key={category.id} label={displayCategoryName(category, t)} active={value === category.id} onPress={() => onPick(category.id)} />
         ))}
       </View>
     );

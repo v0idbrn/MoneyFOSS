@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors, radius, spacing, type } from './theme';
 import { accessibilityAmount, formatDisplayAmount } from './lib/format';
 import { describeTransaction } from './lib/describe';
+import type { Dict } from './i18n';
 import type { Account, Category, Transaction } from '../../src/domain/types.ts';
 
 export type IconName = React.ComponentProps<typeof MaterialIcons>['name'];
@@ -207,14 +208,16 @@ export function TxRow({
   tx,
   accounts,
   categories,
+  t,
   onPress,
 }: {
   tx: Transaction;
   accounts: ReadonlyMap<string, Account>;
   categories: ReadonlyMap<string, Category>;
+  t: Dict;
   onPress: () => void;
 }): React.JSX.Element {
-  const view = describeTransaction(tx, accounts, categories);
+  const view = describeTransaction(tx, accounts, categories, t);
   const icon: IconName =
     view.kind === 'expense'
       ? 'remove'

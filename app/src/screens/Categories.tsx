@@ -4,6 +4,7 @@ import { deleteCategory, hasCategoryUse, renameCategory, saveCategory } from '..
 import { getDb, newTxId } from '../db';
 import { useLedger } from '../state';
 import { useStrings } from '../lang';
+import { displayCategoryName } from '../lib/categories';
 import { Body, Btn, Chip, EmptyState, Field, H1, Meta, Screen, Section } from '../components';
 
 export default function Categories(): React.JSX.Element {
@@ -79,7 +80,7 @@ export default function Categories(): React.JSX.Element {
       ) : (
         listed.map((category) => (
           <View key={category.id} style={{ paddingVertical: 8 }}>
-            <Body>{category.name}</Body>
+            <Body>{displayCategoryName(category, t)}</Body>
             <Meta>{t.usedIn(useCounts.get(category.id) ?? 0)}</Meta>
             {editingId === category.id ? (
               <View>

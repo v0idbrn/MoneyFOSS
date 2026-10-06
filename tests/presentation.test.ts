@@ -10,6 +10,7 @@ import {
   normalizeAmountInput,
 } from '../app/src/lib/format.ts';
 import { TX_KINDS, describeTransaction } from '../app/src/lib/describe.ts';
+import { displayCategoryName } from '../app/src/lib/categories.ts';
 import { STRINGS } from '../app/src/i18n.ts';
 import { EMPTY_FILTER, activeFilterCount, filterTransactions, sortNewestFirst } from '../app/src/lib/filters.ts';
 import { money } from '../src/domain/money.ts';
@@ -107,6 +108,16 @@ function throwsCode(fn: () => void, code: string): void {
   }
   assert.fail(`expected DomainError ${code} but nothing was thrown`);
 }
+
+test('seed category names localize without touching stored data', () => {
+  const seed = { id: 'cat:food', name: 'Food', kind: 'expense' } as const;
+  assert.equal(displayCategoryName(seed, STRINGS.es), 'Comida');
+  assert.equal(displayCategoryName(seed, STRINGS.en), 'Food');
+  assert.equal(displayCategoryName({ ...seed, name: 'Comida' }, STRINGS.es), 'Comida');
+  assert.equal(displayCategoryName({ id: 'custom', name: 'Custom', kind: 'expense' }, STRINGS.es), 'Custom');
+  const tx = expense({ refs, id: 'l1', date: TODAY, account: acct('bank-ars'), amount: money(100n, 'ARS'), category: cat('food') });
+  assert.equal(describeTransaction(tx, accounts, categories, STRINGS.es).title, 'Food');
+});
 
 test('hostile entry input fails safely through the same path the UI uses', () => {
   assert.equal(normalizeAmountInput('   '), '');

@@ -110,6 +110,7 @@ export default function AccountDetail(): React.JSX.Element {
             tx={tx}
             accounts={accounts}
             categories={categories}
+            t={t}
             onPress={() => navigation.navigate('TransactionDetail', { txId: tx.id })}
           />
         ))

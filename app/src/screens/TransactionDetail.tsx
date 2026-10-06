@@ -7,6 +7,7 @@ import { getDb } from '../db';
 import { useLedger } from '../state';
 import { useStrings } from '../lang';
 import { describeTransaction } from '../lib/describe';
+import { displayCategoryName } from '../lib/categories';
 import { formatDisplayAmount } from '../lib/format';
 import { Amount, Body, Btn, Divider, ErrorState, H1, Meta, Screen, Section } from '../components';
 import type { RootStackParamList } from '../navtypes';
@@ -37,8 +38,13 @@ export default function TransactionDetail(): React.JSX.Element {
   const current = tx;
   const words = { minus: t.a11yMinus, plus: t.a11yPlus, zero: t.a11yZero };
 
-  const view = describeTransaction(current, accounts, categories);
+  const view = describeTransaction(current, accounts, categories, t);
   const conversion = current.conversion;
+
+  function categoryLabel(id: string): string {
+    const stored = categories.get(id);
+    return stored === undefined ? id : displayCategoryName(stored, t);
+  }
 
   function remove(): void {
     if (!armed) {
@@ -95,7 +101,7 @@ export default function TransactionDetail(): React.JSX.Element {
               </Body>
               <Meta>
                 {formatDisplayAmount(posting.amount, posting.currency)} {posting.currency}
-                {posting.categoryId !== undefined ? ` · ${categories.get(posting.categoryId)?.name ?? posting.categoryId}` : ''}
+                {posting.categoryId !== undefined ? ` · ${categoryLabel(posting.categoryId)}` : ''}
               </Meta>
             </View>
           ))
