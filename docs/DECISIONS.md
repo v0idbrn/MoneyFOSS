@@ -220,6 +220,34 @@ Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisi
 - **PROVISIONAL:** `src/persistence/drivers/expo-sqlite.ts` implementa el puerto 1:1 con tipos ambientales (sin paquete instalado) pero **no ejecutado aquí** (sin runtime React Native). Evidencia que falta (la misma de T-021): atomicidad, bind int64, migraciones y build F-Droid en el proyecto real.
 - **Regla heredada:** el archivo SQLite no es el formato de backup (frontera con T-010 intacta).
 
+### T-024 — Dependencias de producto de la app (inventario verificado)
+
+- **Estado:** DECIDED
+- **Fecha:** 2026-10-05
+- **Contexto:** la regla de T-022 exige entrada por dependencia. Todas MIT (verificado en `app/node_modules/*/package.json`, campo `license`).
+- **Inventario (`app/package.json`, Expo SDK 57 = pin de T-020):**
+  - `expo ~57.0.26`, `react 19.2.3`, `react-native 0.86.3`: base del stack ya decidido (T-020).
+  - `expo-status-bar ~57.0.1`: barra de estado clara sobre fondo oscuro.
+  - `expo-sqlite ~57.0.3`: driver de producción (T-021); SQLite vendorizado, sin ORM.
+  - `expo-font ~57.0.4`: requerido por `@expo/vector-icons` (carga de la fuente de iconos).
+  - `@expo/vector-icons 15.1.1`: una sola familia (MaterialIcons), sin mezclar packs, sin emoji.
+  - `expo-navigation-bar ~57.0.3`: botones del sistema legibles sobre fondo AMOLED (componente declarativo `style="dark"`).
+  - `@react-navigation/native 7.5.0`, `bottom-tabs 7.20.0`, `native-stack 7.20.0`, `react-native-screens ~4.26.0`, `react-native-safe-area-context ~5.7.0`: navegación Tabs + Stack, sin deep links.
+  - dev: `typescript ~6.0.3`, `@types/react ~19.2.2`.
+- **Hallazgo de red (evidencia, no rumor):** `expo-file-system@57.0.7` existe como dependencia **transitiva de `expo`** (`app/node_modules/expo/node_modules/`) y su manifest declara `INTERNET` + storage — el mismo declarante de T-002. No se instala `expo-file-system` directo (export/sharing queda fuera del MVP por esto). `app.json` trae `blockedPermissions: [INTERNET]` (mecanismo probado en T-019); la verificación del merge final queda para el prebuild.
+- **Rechazado explícitamente:** `expo-file-system` directo, date-pickers nativos, toast libs, splash packages, frameworks de test de componentes (la lógica de presentación se testea con `node:test` sin framework), WatermelonDB/ORMs (T-021, P-02).
+
+### T-025 — Primer build Android de la app + delta de dependencias
+
+- **Estado:** PROVISIONAL (evidencia de build real; runtime pendiente como en T-019)
+- **Fecha:** 2026-10-05
+- **Dependencia agregada:** `expo-system-ui ~57.0.4` (MIT) — aplica el tema oscuro a la UI del sistema; exigida por el warning de prebuild sobre `userInterfaceStyle`. Sin permisos, sin red.
+- **Evidencia de build (debug, no release):**
+  - `expo prebuild --platform android --clean` OK; `assembleDebug` OK con Temurin JDK 17.0.20.1 + SDK local (SDK en `%LOCALAPPDATA%\Android\Sdk`, JDK descargado a directorio temporal fuera del repo).
+  - APK: `app/android/app/build/outputs/apk/debug/app-debug.apk` (gitignored), 169.571.515 B, SHA256 `BBBA1080CE8A59C9B8B93CAC976BD3008E39BB3E89AFCC99DABD3DD5F47E8472`, `com.moneyfoss.app`, versionCode 1, minSdk 24, targetSdk 36.
+  - Manifest fusionado (aapt2): **sin `android.permission.INTERNET`** — el `tools:node="remove"` de `blockedPermissions` sobrevivió al merge con el declarante transitivo `expo-file-system@57.0.7`. Permisos presentes: `SYSTEM_ALERT_WINDOW`, `READ/WRITE_EXTERNAL_STORAGE` (maxSdk 32), `VIBRATE` (+ permiso propio `DYNAMIC_RECEIVER_NOT_EXPORTED`). `allowBackup="true"`, `debuggable="true"` (esperable en debug).
+- **Lo que NO prueba:** variante release (R8, purga de permisos, `allowBackup=false` siguen pendientes del gate §32.4), ni runtime en dispositivo/emulador. No se cierra T-019.
+
 ---
 
 ## Cómo añadir una decisión nueva
