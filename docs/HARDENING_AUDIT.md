@@ -127,11 +127,11 @@ Arranque en airplane mode, flujos completos en teléfono, lector de pantalla, `a
 - `npm test` → **135 pass, 0 fail** (129 + settings + app-imports + hostile-input… conteo exacto en log).
 - `npm run typecheck` (raíz) → exit 0. `npm run typecheck` (`app/`) → exit 0.
 - `expo export --platform android` → OK (2.5 MB, re-verificado tras i18n).
-- `expo prebuild --clean` → OK; manifest generado con `allowBackup="false"` + INTERNET `tools:node="remove"`.
-- `assembleDebug` → APK OK (incremental); aapt2: permisos = SYSTEM_ALERT_WINDOW, READ/WRITE_EXTERNAL_STORAGE(max32), VIBRATE (+propio); **sin INTERNET**.
+- `expo prebuild --clean` → OK; manifest generado con `allowBackup="false"` + INTERNET `tools:node="remove"` (verificado hoy).
+- `assembleDebug` (rebuild tras los cambios del sprint): **en curso al cerrar el sprint** — el primer intento falló por JDK incompleto en el entorno (limpieza de temporales borró `lib/jvm.cfg`; causa raíz probada en el log), el JDK se restauró, el segundo intento avanza (módulos, dex y CMake de x86 superados) pero la máquina compila a ritmo muy bajo. Evidencia APK vigente: T-025 (SHA registrado). Reanudar/verificar: `gradlew -p android assembleDebug` + aapt2 `dump xmltree … --file AndroidManifest.xml`.
 - Deps: +`expo-system-ui`, +`expo-build-properties` (ambas MIT); T-026 registrado. Sin cambios no intencionales (`git status` limpio al final).
 - Commits: `audit:`/`fix:`+`test:`/`docs:` + push a `github.com/v0idbrn/MoneyFOSS` (rama `main`).
 
 ## 19. Final verdict
 
-Hardening completo sin regresiones: fronteras verificadas y reforzadas donde correspondía, release preparado sin declararlo verificado, i18n ES/EN con toggle persistido, READMEs ES/EN publicados, repo pusheado a GitHub. **No release-ready**: los gates de release y dispositivo siguen pendientes y nombrados. Veredicto: endurecido, a la espera de evidencia de teléfono.
+Hardening completo sin regresiones: fronteras verificadas y reforzadas donde correspondía, release preparado sin declararlo verificado, i18n ES/EN con toggle persistido, READMEs ES/EN publicados, repo pusheado a GitHub. **No release-ready**: los gates de release y dispositivo siguen pendientes y nombrados. Rebuild debug en curso al cierre (evidencia APK vigente: T-025). Veredicto: endurecido, a la espera de evidencia de teléfono.
