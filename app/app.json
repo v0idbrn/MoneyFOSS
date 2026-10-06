@@ -33,7 +33,11 @@
         "monochromeImage": "./assets/adaptive-monochrome.png"
       },
       "blockedPermissions": [
-        "android.permission.INTERNET"
+        "android.permission.INTERNET",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.VIBRATE"
       ],
       "predictiveBackGestureEnabled": false
     }
