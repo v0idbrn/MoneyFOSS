@@ -237,6 +237,16 @@ Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisi
 - **Hallazgo de red (evidencia, no rumor):** `expo-file-system@57.0.7` existe como dependencia **transitiva de `expo`** (`app/node_modules/expo/node_modules/`) y su manifest declara `INTERNET` + storage — el mismo declarante de T-002. No se instala `expo-file-system` directo (export/sharing queda fuera del MVP por esto). `app.json` trae `blockedPermissions: [INTERNET]` (mecanismo probado en T-019); la verificación del merge final queda para el prebuild.
 - **Rechazado explícitamente:** `expo-file-system` directo, date-pickers nativos, toast libs, splash packages, frameworks de test de componentes (la lógica de presentación se testea con `node:test` sin framework), WatermelonDB/ORMs (T-021, P-02).
 
+### T-026 — Delta de dependencias del hardening sprint
+
+- **Estado:** DECIDED
+- **Fecha:** 2026-10-05
+- **Agregadas (todas MIT, verificadas en `package.json` instalados):**
+  - `expo-system-ui ~57.0.4` — aplica el tema oscuro a la UI del sistema; exigida por el warning de prebuild sobre `userInterfaceStyle`. Sin permisos, sin red, sin código nativo con sockets propios.
+  - `expo-build-properties ~57.0.22` — **solo build-time** (config plugin, no se empaqueta lógica en runtime): `enableMinifyInReleaseBuilds`, `enableShrinkResourcesInReleaseBuilds`, `enablePngCrunchInReleaseBuilds` (solo variante release; debug intacto).
+- **Plugin local sin dependencia nueva:** `app/plugins/withAllowBackupFalse.cjs` (usa `@expo/config-plugins@57.0.9`, ya presente como transitiva de `expo`) — fija `android:allowBackup="false"` en el manifest generado. Sin paquete `uuid`, sin `crypto` nativo: los IDs siguen siendo `timestamp+random` con la PK como backstop.
+- **Red:** ningún agregado declara ni necesita red. El declarante transitivo `expo-file-system@57.0.7` sigue presente (dependencia de `expo`); `blockedPermissions: [INTERNET]` verificado en el merge (T-025, re-verificado en este sprint).
+
 ### T-025 — Primer build Android de la app + delta de dependencias
 
 - **Estado:** PROVISIONAL (evidencia de build real; runtime pendiente como en T-019)
