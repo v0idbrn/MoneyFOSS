@@ -9,6 +9,7 @@ import {
   exchange,
   expense,
   income,
+  openingBalance,
   transfer,
 } from '../src/domain/operations.ts';
 import { RATE_1180, TODAY, acct, cat, refs } from './fixtures.ts';
@@ -368,4 +369,34 @@ test('audit accounts: generic transfer allows ASSET->LIABILITY movement', () => 
 test('audit accounts: overdraft is not a ledger rule (sufficiency lives above the domain)', () => {
   const tx = expense({ refs, id: 'overdraft', date: TODAY, account: acct('bank-ars'), amount: money(1000000000000000n, 'ARS'), category: cat('food') });
   assert.equal(tx.postings[0]!.amount, -1000000000000000n);
+});
+
+test('openingBalance builds a validated asset-from-equity transaction', () => {
+  const tx = openingBalance({
+    refs,
+    id: 'ob1',
+    date: TODAY,
+    memo: 'Opening balance',
+    account: acct('bank-ars'),
+    amount: money(2500000n, 'ARS'),
+    equityAccount: acct('opening-ars'),
+  });
+  assert.deepEqual(view(tx), [
+    { accountId: 'bank-ars', currency: 'ARS', amount: 2500000n, kind: 'normal' },
+    { accountId: 'opening-ars', currency: 'ARS', amount: -2500000n, kind: 'normal' },
+  ]);
+});
+
+test('openingBalance rejects wrong sides and non-positive amounts', () => {
+  const base = {
+    refs,
+    id: 'obx',
+    date: TODAY,
+    account: acct('bank-ars'),
+    amount: money(100n, 'ARS'),
+    equityAccount: acct('opening-ars'),
+  };
+  throwsCode(() => openingBalance({ ...base, amount: money(0n, 'ARS') }), 'AMOUNT_MUST_BE_POSITIVE');
+  throwsCode(() => openingBalance({ ...base, equityAccount: acct('bank-ars') }), 'ACCOUNT_TYPE_MISMATCH');
+  throwsCode(() => openingBalance({ ...base, account: acct('opening-ars') }), 'ACCOUNT_TYPE_MISMATCH');
 });

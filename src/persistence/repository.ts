@@ -301,3 +301,22 @@ export function deleteTransaction(db: Db, id: string): void {
     db.exec('DELETE FROM transactions WHERE id = ?', [id]);
   });
 }
+
+export function getSetting(db: Db, key: string): string | null {
+  const rows = db.query('SELECT value FROM schema_meta WHERE key = ?', [key]);
+  const value = rows[0]?.value;
+  return typeof value === 'string' ? value : null;
+}
+
+export function setSetting(db: Db, key: string, value: string): void {
+  if (typeof key !== 'string' || key.length === 0 || key.length > ID_MAX_LENGTH) {
+    throw new DomainError('INVALID_SETTING', 'setting key must be a non-empty string of at most 128 characters');
+  }
+  if (key === 'version') {
+    throw new DomainError('INVALID_SETTING', 'the schema version key is owned by migrations');
+  }
+  if (typeof value !== 'string') {
+    throw new DomainError('INVALID_SETTING', 'setting value must be a string');
+  }
+  db.exec('INSERT OR REPLACE INTO schema_meta (key, value) VALUES (?, ?)', [key, value]);
+}

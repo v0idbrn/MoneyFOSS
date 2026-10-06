@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { money } from '../src/domain/money.ts';
-import { accountBalances } from '../src/domain/balances.ts';
+import { accountBalances, currencyTotals } from '../src/domain/balances.ts';
 import { cardPayment, exchange, expense, income, transfer } from '../src/domain/operations.ts';
 import { RATE_1180, TODAY, acct, cat, refs } from './fixtures.ts';
 
@@ -36,4 +36,18 @@ test('conversion moves value across currencies without creating any', () => {
   assert.equal(balances.get('bank-usd')?.get('USD'), 8475n);
   assert.equal(balances.get('sys:fx:ARS')?.get('ARS'), 10000000n);
   assert.equal(balances.get('sys:fx:USD')?.get('USD'), -8475n);
+});
+
+test('currencyTotals sums a filtered account set per currency', () => {
+  const txs = [
+    expense({ refs, id: 't1', date: TODAY, account: acct('bank-ars'), amount: money(1000000n, 'ARS'), category: cat('food') }),
+    expense({ refs, id: 't2', date: TODAY, account: acct('bank-usd'), amount: money(2000n, 'USD'), category: cat('food') }),
+    transfer({ refs, id: 't3', date: TODAY, from: acct('cash-ars'), to: acct('bank-ars'), amount: money(500000n, 'ARS') }),
+  ];
+  const balances = accountBalances(txs);
+  const totals = currencyTotals(balances, ['bank-ars', 'bank-usd', 'cash-ars']);
+  assert.equal(totals.get('ARS'), -1000000n);
+  assert.equal(totals.get('USD'), -2000n);
+  assert.equal(currencyTotals(balances, ['ghost']).size, 0);
+  assert.equal(currencyTotals(balances, []).size, 0);
 });

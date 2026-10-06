@@ -14,3 +14,20 @@ export function accountBalances(transactions: readonly Transaction[]): ReadonlyM
   }
   return out;
 }
+
+export function currencyTotals(
+  balances: ReadonlyMap<string, ReadonlyMap<string, bigint>>,
+  accountIds: readonly string[],
+): ReadonlyMap<string, bigint> {
+  const totals = new Map<string, bigint>();
+  for (const id of accountIds) {
+    const perCurrency = balances.get(id);
+    if (perCurrency === undefined) {
+      continue;
+    }
+    for (const [currency, amount] of perCurrency) {
+      totals.set(currency, (totals.get(currency) ?? 0n) + amount);
+    }
+  }
+  return totals;
+}

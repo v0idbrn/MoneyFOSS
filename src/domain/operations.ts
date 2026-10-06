@@ -204,6 +204,33 @@ export function cardPayment(input: TransferInput): Transaction {
   return transfer(input);
 }
 
+export interface OpeningBalanceInput extends BaseInput {
+  readonly account: Account;
+  readonly amount: Money;
+  readonly equityAccount: Account;
+}
+
+export function openingBalance(input: OpeningBalanceInput): Transaction {
+  requirePositive(input.amount, 'opening balance');
+  if (input.equityAccount.type !== 'EQUITY') {
+    throw new DomainError(
+      'ACCOUNT_TYPE_MISMATCH',
+      `opening balance counterpart must be an EQUITY account, ${JSON.stringify(input.equityAccount.id)} is ${input.equityAccount.type}`,
+    );
+  }
+  if (input.account.type !== 'ASSET' && input.account.type !== 'LIABILITY') {
+    throw new DomainError(
+      'ACCOUNT_TYPE_MISMATCH',
+      `opening balance account must be ASSET or LIABILITY, ${JSON.stringify(input.account.id)} is ${input.account.type}`,
+    );
+  }
+  const postings: Posting[] = [
+    { accountId: input.account.id, currency: input.amount.currency, amount: input.amount.amount, kind: 'normal' },
+    { accountId: input.equityAccount.id, currency: input.amount.currency, amount: -input.amount.amount, kind: 'normal' },
+  ];
+  return finish({ id: input.id, date: input.date, memo: input.memo, postings }, input.refs);
+}
+
 export function exchange(input: ExchangeInput): Transaction {
   requirePositive(input.amount, 'exchange amount');
   if (input.from.currency !== input.amount.currency) {

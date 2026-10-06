@@ -6,6 +6,7 @@ import {
   deleteAccount,
   deleteCategory,
   deleteTransaction,
+  getSetting,
   hasCategoryUse,
   hasPostings,
   listAccounts,
@@ -14,6 +15,7 @@ import {
   renameAccount,
   renameCategory,
   saveTransaction,
+  setSetting,
 } from '../src/persistence/repository.ts';
 import { TODAY, acct, cat, refs } from './fixtures.ts';
 import { openTestDb, seedStandardRefs, throwsCode } from './db-fixtures.ts';
@@ -70,6 +72,21 @@ test('transaction delete removes rows atomically', () => {
     throwsCode(() => loadTransaction(db, 'm3'), 'TRANSACTION_NOT_FOUND');
     assert.equal(db.query('SELECT COUNT(*) AS c FROM postings')[0]?.c, 0);
     throwsCode(() => deleteTransaction(db, 'm3'), 'TRANSACTION_NOT_FOUND');
+  } finally {
+    db.close();
+  }
+});
+
+test('generic settings roundtrip; version key is owned by migrations', () => {
+  const db = openTestDb();
+  try {
+    assert.equal(getSetting(db, 'locale'), null);
+    setSetting(db, 'locale', 'es');
+    assert.equal(getSetting(db, 'locale'), 'es');
+    setSetting(db, 'locale', 'en');
+    assert.equal(getSetting(db, 'locale'), 'en');
+    throwsCode(() => setSetting(db, 'version', '99'), 'INVALID_SETTING', 'owned by migrations');
+    throwsCode(() => setSetting(db, '', 'x'), 'INVALID_SETTING');
   } finally {
     db.close();
   }
