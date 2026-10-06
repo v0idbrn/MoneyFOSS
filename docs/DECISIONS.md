@@ -247,6 +247,13 @@ Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisi
 - **Plugin local sin dependencia nueva:** `app/plugins/withAllowBackupFalse.cjs` (usa `@expo/config-plugins@57.0.9`, ya presente como transitiva de `expo`) — fija `android:allowBackup="false"` en el manifest generado. Sin paquete `uuid`, sin `crypto` nativo: los IDs siguen siendo `timestamp+random` con la PK como backstop.
 - **Red:** ningún agregado declara ni necesita red. El declarante transitivo `expo-file-system@57.0.7` sigue presente (dependencia de `expo`); `blockedPermissions: [INTERNET]` verificado en el merge (T-025, re-verificado en este sprint).
 
+### T-027 — Release APK real (evidencia, sin cerrar gates físicos)
+
+- **Estado:** PROVISIONAL (evidencia de artefacto; runtime y firma release pendientes)
+- **Fecha:** 2026-10-06
+- **Evidencia:** `assembleRelease` OK (Gradle 9.3.1, JDK Temurin 17.0.20.1): `app-release.apk`, 82.023.112 B, SHA-256 `0BAEE0CB…1552506`, `com.moneyfoss.app` v1.0.0, R8+shrink verificados (`minifyReleaseWithR8`, `mapping.txt`, sin `debuggable`). Manifest final (aapt2): cero permisos peligrosos (INTERNET/storage/alert/vibrate eliminados vía `blockedPermissions`), `allowBackup=false`, solo MainActivity exportada (+ receiver estándar con permiso DUMP), sin deep links. Dex tras R8 conserva `okhttp3`/`expo.modules.fetch` (sin permiso, sin uso). Fuente: HEAD `929b84b`, árbol limpio.
+- **NO evidencia:** firma release (firmado con clave debug `CN=Android Debug`: no distribuible; el keystore release es acción del usuario fuera del repo), tráfico real, runtime en dispositivo. T-019 y T-021 siguen PROVISIONALES sin cambios.
+
 ### T-025 — Primer build Android de la app + delta de dependencias
 
 - **Estado:** PROVISIONAL (evidencia de build real; runtime pendiente como en T-019)
