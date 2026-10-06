@@ -40,7 +40,7 @@ Pinned versions intentionally NOT recorded for non-installed targets (nothing in
 | pbakaus/impeccable | **Apache-2.0** | COMPATIBLE WITH CONDITIONS (dev-tooling use only; cf. T-009 one-way note) |
 | JuliusBrussee/caveman | **Apache-2.0 top-level**; skill MIT + proxy BSL-1.1 (T-015) | COMPATIBLE WITH CONDITIONS (skill-only; proxy INCOMPATIBLE-prohibited) |
 | Awesome (unconfirmed) | per-item | UNCLEAR → not installed |
-| graphify/harness skills | tooling config | NOT APPLICABLE |
+| graphify (harness-bundled) | upstream `safishamsi/graphify` confirmed via SKILL.md match + sponsor line (2026-10-06) | Apache-2.0 → COMPATIBLE |
 
 No bundled-subcomponent audit performed (nothing installed/bundled; T-009 product-license impact: none).
 
