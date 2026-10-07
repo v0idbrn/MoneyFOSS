@@ -254,6 +254,14 @@ Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisi
 - **Evidencia:** `assembleRelease` OK (Gradle 9.3.1, JDK Temurin 17.0.20.1): `app-release.apk`, 82.023.112 B, SHA-256 `0BAEE0CB…1552506`, `com.moneyfoss.app` v1.0.0, R8+shrink verificados (`minifyReleaseWithR8`, `mapping.txt`, sin `debuggable`). Manifest final (aapt2): cero permisos peligrosos (INTERNET/storage/alert/vibrate eliminados vía `blockedPermissions`), `allowBackup=false`, solo MainActivity exportada (+ receiver estándar con permiso DUMP), sin deep links. Dex tras R8 conserva `okhttp3`/`expo.modules.fetch` (sin permiso, sin uso). Fuente: HEAD `929b84b`, árbol limpio.
 - **NO evidencia:** firma release (firmado con clave debug `CN=Android Debug`: no distribuible; el keystore release es acción del usuario fuera del repo), tráfico real, runtime en dispositivo. T-019 y T-021 siguen PROVISIONALES sin cambios.
 
+### T-028 — Segundo release APK (post-toasts, post-permisos, firmado producción)
+
+- **Estado:** PROVISIONAL (evidencia de artefacto; runtime en dispositivo pendiente)
+- **Fecha:** 2026-10-07
+- **SUPERSEDE (artefacto):** el APK de T-027 como referencia vigente; la evidencia de T-027 se conserva como historial.
+- **Evidencia:** `assembleRelease` OK (online; `--offline` cuelga la fase de configure en este entorno): `app-release.apk`, 82.025.156 B, SHA-256 `38EAEC62…211312145F`, `com.moneyfoss.app` v1.0.0, R8+shrink, sin `debuggable`, `allowBackup=false`, firmado producción (`CN=MoneyFOSS`, cert `83389ea5…326c` — no debug). Manifest final (aapt2): un único `uses-permission` propio (DYNAMIC_RECEIVER); sin INTERNET/storage/alert/vibrate/network-state; MainActivity exportada (+ receiver estándar). Fuente: HEAD `d98a667`, árbol limpio; suite 138/138 + typechecks en 0.
+- **NO evidencia:** tráfico real, runtime en dispositivo. T-019 y T-021 siguen PROVISIONALES sin cambios.
+
 ### T-025 — Primer build Android de la app + delta de dependencias
 
 - **Estado:** PROVISIONAL (evidencia de build real; runtime pendiente como en T-019)

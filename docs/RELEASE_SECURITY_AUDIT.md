@@ -1,6 +1,6 @@
 # MoneyFOSS — Release Security Audit
 
-**Fecha:** 2026-10-06 · **Fuente:** HEAD `929b84b` (árbol limpio; el APK se compiló de este árbol exacto).
+**Fecha:** 2026-10-07 · **Fuente:** HEAD `d98a667` (árbol limpio; el APK se compiló de este árbol exacto).
 
 ## Executive Summary
 
@@ -13,16 +13,26 @@ Release APK real producido localmente (no debug): 82 MB con R8+shrink, **cero pe
 | Package / version | `com.moneyfoss.app`, versionCode 1, versionName 1.0.0 |
 | Stack | Expo SDK 57.0.26, RN 0.86.3, React 19.2.3, TS (strict, erasableSyntaxOnly) |
 | Toolchain | Node 24.15.0, npm 12.0.2, Temurin JDK 17.0.20.1, Gradle 9.3.1, build-tools 35.0.0, compileSdk 36, targetSdk 36, minSdk 24, NDK 27.1.12297006, Windows |
-| Comando | `expo prebuild --clean` + `gradlew -p android assembleRelease --offline` |
+| Comando | `expo prebuild --clean` + `gradlew -p android assembleRelease --max-workers=2` (online; `--offline` cuelga configure en este entorno: requiere red para resolución) |
 | Variante | release (R8 `minifyReleaseWithR8` ejecutado, `mapping.txt` generado, shrinkResources, sin flag `debuggable`) |
 | Firma | **keystore producción** (`CN=MoneyFOSS`, SHA-256 `83389ea5…326c`) — **no debug key** |
-| Tamaño / SHA-256 | 82.023.124 B / `9C938450D1DB81FC6ED63A42B4154258D1F3ADF6CC7CA7B059DB15D6A5EC1297` |
+| Tamaño / SHA-256 | 82.025.156 B / `38EAEC6261434A6DE4FFC2136F7DB3C30C72BC8A58A8F85621946F721312145F` |
 | Ruta | `app/android/app/build/outputs/apk/release/app-release.apk` (gitignored) |
 | Resultado | `BUILD SUCCESSFUL`, 360 tareas (332 ejecutadas) |
 
 ## Final APK Evidence
 
-Ver §Build Evidence. El APK debug anterior (T-025) queda superado por este artefacto para toda conclusión de release; no mezclarlos.
+Ver §Build Evidence. Este artefacto (SHA `38EAEC62…211312145F`, fuente HEAD `d98a667`) supera al APK de T-027 para toda conclusión de release; no mezclarlos. Incluye los cambios desde entonces: toasts de feedback, categorías semilla localizadas, `blockedPermissions` extendido a 5 permisos.
+
+## CURRENT RELEASE ARTIFACT
+
+- version: 1.0.0 · versionCode: 1 · `com.moneyfoss.app`
+- APK: `app/android/app/build/outputs/apk/release/app-release.apk` (gitignored)
+- SHA-256: `38EAEC6261434A6DE4FFC2136F7DB3C30C72BC8A58A8F85621946F721312145F`
+- size: 82.025.156 B · firmado producción (`CN=MoneyFOSS`, cert SHA-256 `83389ea5…326c`)
+- R8 + shrinkResources, sin `debuggable`, `allowBackup=false`
+- permisos: solo propio DYNAMIC_RECEIVER; sin INTERNET/storage/alert/vibrate/network-state
+- fuente: HEAD `d98a667`, árbol limpio; suite 138/138 + typechecks en 0 sobre ese árbol
 
 ## Permissions (VERIFIED vía aapt2 sobre el APK final)
 
