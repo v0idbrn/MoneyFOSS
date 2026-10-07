@@ -1,6 +1,6 @@
 # MoneyFOSS — Data Format
 
-**Estados por sección:** §1–§4 (wire de transacción) = **DECIDED** — implementado en `src/domain/serialize.ts` y testeado. §5 (envelope de backup) = **PROVISIONAL** — depende de T-010 y T-005, ambos **OPEN**. CSV = **sin diseñar** (pertenece al pipeline de import, Fase 2+).
+**Estados por sección:** §1–§4 (wire de transacción) = **DECIDED** — implementado en `src/domain/serialize.ts` y testeado. §5 (envelope de backup) = **PROVISIONAL** — depende de T-010 y T-005, ambos **OPEN**. §7 (CSV v1) y §8 (JSON export) = **PROVISIONAL** — implementados y testeados (round-trip export→parse); pueden ajustarse al calibrar el preview de import.
 
 ---
 
@@ -116,4 +116,39 @@ Lo que el dominio ya fija y el backup debe contener (orden de restore: primero r
 
 - Toda adición o cambio de campo exige bump de `version` y entrada nueva en `DECISIONS.md`.
 - Los campos desconocidos **nunca** se ignoran: se rechazan (un lector viejo que aceptara campos nuevos estaría mintiendo sobre qué entendió).
-- CSV de import/export: sin diseño todavía; será documentado aquí con su pipeline `parse → validate → preview → confirm → atomic commit`.
+- CSV de import/export: ver §7–§8.
+
+---
+
+## 7. CSV de transacciones v1 (export + import)
+
+**Propósito (§13a):** hoja de cálculo y análisis humano, **y** re-importación de lo exportado. **No es formato de restore** — el restore entra solo por `.moneybackup` (T-010). Implementado en `app/src/lib/csv.ts` (codec RFC 4180) + `app/src/lib/export-data.ts` (filas) y testeado (`tests/export.test.ts`).
+
+- Una fila por **posting**; los postings de una transacción comparten `tx_id`; `position` es 0-based y ordena los postings.
+- `amount_minor`: **string de entero con signo en minor units** — nunca decimal, nunca float, nunca notación científica (P-07). El exponente de cada moneda vive en la tabla embebida (§ currency) y se exporta también en el JSON (§8).
+- `account_name`/`account_type`: valores de la cuenta; para cuentas de sistema (`sys:income`, `sys:expense`, `sys:fx:*`) el nombre es el id y `account_type` queda vacío.
+- `category_id`/`category_name`: solo en postings sobre cuentas de sistema; vacío si no hay categoría.
+- `memo`: memo de la transacción, repetido en cada fila del grupo; vacío si no existe.
+- `conv_*` (9 columnas): datos de `Conversion`, repetidos idénticos en cada fila del grupo; todas vacías si la transacción no tiene conversión. Bridges sin conversión son inválidos por el dominio, así que el CSV de una transacción válida siempre es consistente.
+- Encoding: UTF-8, separador `,`, comillas RFC 4180 (`""` para escapar), fin de línea `\n`.
+- **Límites de import:** 8 MiB y 50.000 filas (untrusted, §13b). Parser estricto: comilla sin cerrar, comilla rara en celda sin comillas y junk tras comilla de cierre = `CSV_INVALID`.
+- **Residual documentado (sin mitigar, a propósito):** las celdas de texto que empiezan con `=`/`+`/`@` podrían interpretarse como fórmulas al abrirse en una hoja de cálculo. Escaparlas rompería el round-trip exacto de datos (un memo que empieza con `'` perdería el carácter en re-import); la amenaza requiere contenido ya presente en el ledger + apertura manual en una planilla + confirmación del warnings del cliente. Aceptado; revisar si aparece evidencia contraria.
+
+## 8. JSON export (`moneyfoss-export` v1) — solo salida
+
+**Propósito (§13a):** interoperabilidad máquina-a-máquina. **No es formato de restore ni backup** (el restore entra solo por `.moneybackup`, T-010) y **no tiene importador** — export de solo lectura.
+
+```json
+{
+  "format": "moneyfoss-export",
+  "version": 1,
+  "currencies": [ { "code": "ARS", "exponent": 2 } ],
+  "accounts": [ { "id": "bank-ars", "name": "...", "type": "ASSET", "currency": "ARS" } ],
+  "categories": [ { "id": "food", "name": "Food", "kind": "expense" } ],
+  "transactions": [ { "…wire de §2…": "" } ]
+}
+```
+
+- `transactions[]` es exactamente el wire de §2 (importes como strings de minor units); re-valida con `fromWire` contra los `accounts`/`categories` del mismo archivo (testeado).
+- `currencies[]` trae la tabla de exponentes para que el consumidor pueda formatear montos sin la app.
+- Claves desconocidas en un futuro consumidor: el mismo principio de §1 aplica a quien reciba este archivo.

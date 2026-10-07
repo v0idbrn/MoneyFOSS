@@ -154,6 +154,12 @@ export interface Dict {
   readonly moreErase: string;
   readonly moreConfirmErase: string;
   readonly moreErased: string;
+  readonly moreExport: string;
+  readonly moreExportBody: string;
+  readonly exportCsv: string;
+  readonly exportJson: string;
+  readonly exportShared: string;
+  readonly exportFailed: string;
   readonly a11yMinus: string;
   readonly a11yPlus: string;
   readonly a11yZero: string;
@@ -314,6 +320,12 @@ const es: Dict = {
   moreErase: 'Borrar todos los datos',
   moreConfirmErase: 'Tocá de nuevo para borrar todo',
   moreErased: 'Datos borrados. Se restauraron las categorías por defecto.',
+  moreExport: 'Exportar datos',
+  moreExportBody: 'CSV para hoja de cálculo, JSON para datos completos. No son un backup restaurable.',
+  exportCsv: 'Exportar CSV (movimientos)',
+  exportJson: 'Exportar JSON (completo)',
+  exportShared: 'Exportación lista para compartir.',
+  exportFailed: 'No se pudo preparar la exportación.',
   a11yMinus: 'menos',
   a11yPlus: 'más',
   a11yZero: 'cero',
@@ -486,6 +498,12 @@ const en: Dict = {
   moreErase: 'Erase all data',
   moreConfirmErase: 'Tap again to erase everything',
   moreErased: 'All data erased. Default categories were restored.',
+  moreExport: 'Export data',
+  moreExportBody: 'CSV for spreadsheets, JSON for full data. Neither is a restorable backup.',
+  exportCsv: 'Export CSV (transactions)',
+  exportJson: 'Export JSON (full)',
+  exportShared: 'Export ready to share.',
+  exportFailed: 'Could not prepare the export.',
   a11yMinus: 'minus',
   a11yPlus: 'plus',
   a11yZero: 'zero',

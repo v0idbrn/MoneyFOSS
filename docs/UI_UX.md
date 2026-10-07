@@ -93,7 +93,7 @@ Concept: two ledger columns (Velvet tall / Magenta short = debit and credit side
 
 ## 13. Rationale log (decisiones de producto menores, reversibles)
 
-- No icon pack beyond MaterialIcons; no custom font; no splash package; no toast/alert library (minimal in-house toasts, zero deps; errors stay inline); no date-picker package (strict text date); no export/share yet (would need `expo-file-system`, an INTERNET declarer — refused).
+- No icon pack beyond MaterialIcons; no custom font; no splash package; no toast/alert library (minimal in-house toasts, zero deps; errors stay inline); no date-picker package (strict text date); no export/write-to-disk: export CSV/JSON sale por el Share sheet nativo del sistema (texto en memoria, cero dependencias, sin `expo-file-system`) — el destino lo elige el usuario en la acción explícita de compartir (amenaza #7 del threat model).
 - Text date entry over picker: zero deps + strict validation; revisit if users struggle.
 - Duplicate transaction IDs: repository concern of a later phase, wire accepts (documented in audit).
 - Display decimal mark stays canonical `.` for now (grouping is locale-aware).

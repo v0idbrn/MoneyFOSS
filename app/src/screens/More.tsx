@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
+import { Share, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { listCurrencies } from '../../../src/domain/currency.ts';
 import { eraseAllData, getDb } from '../db';
+import { exportJson, transactionsCsv } from '../lib/export-data';
 import { useLedger } from '../state';
 import { useStrings } from '../lang';
 import type { Lang } from '../i18n';
@@ -42,6 +43,25 @@ export default function More(): React.JSX.Element {
     setLang(next);
   }
 
+  function shareExport(kind: 'csv' | 'json'): void {
+    try {
+      const content =
+        kind === 'csv'
+          ? transactionsCsv(ledger.transactions, ledger.accounts, ledger.categories)
+          : exportJson(ledger.accounts, ledger.categories, ledger.transactions);
+      Share.share({ message: content, title: kind === 'csv' ? 'moneyfoss-transactions.csv' : 'moneyfoss-export.json' })
+        .then((result) => {
+          if (result.action === Share.sharedAction) {
+            setError('');
+            showToast(t.exportShared, 'success');
+          }
+        })
+        .catch(() => setError(t.exportFailed));
+    } catch {
+      setError(t.exportFailed);
+    }
+  }
+
   return (
     <Screen>
       <H1>{t.moreTitle}</H1>
@@ -70,6 +90,11 @@ export default function More(): React.JSX.Element {
           <Meta>{t.decimalsLine(currency.exponent, currency.name)}</Meta>
         </View>
       ))}
+      <Divider />
+      <Section>{t.moreExport}</Section>
+      <Meta>{t.moreExportBody}</Meta>
+      <Btn title={t.exportCsv} onPress={() => shareExport('csv')} kind="secondary" icon="table-chart" />
+      <Btn title={t.exportJson} onPress={() => shareExport('json')} kind="secondary" icon="code" />
       <Divider />
       <Section>{t.moreDanger}</Section>
       <Btn title={armed ? t.moreConfirmErase : t.moreErase} onPress={erase} kind="danger" icon="delete-forever" />
