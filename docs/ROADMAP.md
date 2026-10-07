@@ -201,12 +201,12 @@
 - **T-019** (offline runtime) and **T-021** (expo-sqlite runtime) remain PROVISIONAL pending physical device testing
 - **T-004/T-005/T-010** remain OPEN pending threat model and KDF decisions
 - **T-009** License remains PROVISIONAL (GPL-3.0-or-later provisional)
-- Production APK de T-030 (SHA `B7C6D34A…F805E`, fuente `ae8aae8`) es el `LAST KNOWN GOOD PRODUCTION APK` — ver DECISIONS T-030 / RELEASE_SECURITY_AUDIT
+- Production APK de T-033 (SHA `6753476F…452FC`, fuente `7d617c4`) es el `LAST KNOWN GOOD PRODUCTION APK` — ver DECISIONS T-033 / RELEASE_SECURITY_AUDIT
 - DO NOT re-verify device gates until physical device is available
 - Focus development on P0 UX Polish before expanding features
 
 ---
 
 *Last updated: 2026-10-07*
-*Last build: `ae8aae8` — production-signed APK (T-030), 82.029.380 B, SHA-256 `B7C6D34AC3DE52463F4680F26A39C3E68412A830040FA435AE143C2E4CAF805E`*
+*Last build: `7d617c4` — production-signed APK (T-033), 82.063.632 B, SHA-256 `6753476F28B19F606A8B57C03642763703459AF6A1FD0D51F8BA8E92573452FC`*
 *Tests: 157/157 pass | Typecheck: PASS (raíz + app) | Export: OK | APK: 82MB, signed (prod key), R8+shrink*
