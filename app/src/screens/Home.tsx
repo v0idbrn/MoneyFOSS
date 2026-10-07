@@ -2,10 +2,10 @@ import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { accountBalances, currencyTotals } from '../../../src/domain/balances.ts';
 import { useLedger } from '../state';
 import { useStrings } from '../lang';
-import { Amount, Body, EmptyState, Fab, H1, Meta, Screen, Section, TxRow } from '../components';
+import { Amount, Body, Btn, EmptyState, Fab, H1, Meta, Screen, Section, TxRow } from '../components';
+import { snapshotEntries } from '../lib/snapshot';
 import { sortNewestFirst } from '../lib/filters';
 import type { RootStackParamList } from '../navtypes';
 
@@ -17,27 +17,9 @@ export default function Home(): React.JSX.Element {
   const { t } = useStrings();
   const accounts = useMemo(() => new Map(ledger.accounts.map((a) => [a.id, a])), [ledger.accounts]);
   const categories = useMemo(() => new Map(ledger.categories.map((c) => [c.id, c])), [ledger.categories]);
-  const balances = useMemo(() => accountBalances(ledger.transactions), [ledger.transactions]);
   const words = { minus: t.a11yMinus, plus: t.a11yPlus, zero: t.a11yZero };
 
-  const snapshot = useMemo(() => {
-    const ids = ledger.accounts.filter((a) => a.type === 'ASSET' || a.type === 'LIABILITY').map((a) => a.id);
-    const totals = currencyTotals(balances, ids);
-    const counts = new Map<string, number>();
-    for (const id of ids) {
-      const perCurrency = balances.get(id);
-      if (perCurrency === undefined) {
-        continue;
-      }
-      for (const currency of perCurrency.keys()) {
-        counts.set(currency, (counts.get(currency) ?? 0) + 1);
-      }
-    }
-    return [...totals.entries()]
-      .sort(([a], [b]) => (a < b ? -1 : 1))
-      .map(([currency, total]) => ({ currency, total, count: counts.get(currency) ?? 0 }));
-  }, [ledger.accounts, balances]);
-
+  const snapshot = useMemo(() => snapshotEntries(ledger.accounts, ledger.transactions), [ledger.accounts, ledger.transactions]);
   const recent = useMemo(() => sortNewestFirst(ledger.transactions).slice(0, 5), [ledger.transactions]);
 
   return (
@@ -67,26 +49,36 @@ export default function Home(): React.JSX.Element {
                 </View>
               ))
             )}
+            {ledger.transactions.length === 0 ? (
+              <>
+                <EmptyState icon="receipt-long" title={t.homeNoTx} body={t.homeNoTxBody} />
+                <Body>{t.homeAddHint}</Body>
+              </>
+            ) : (
+              <>
+                <Section>{t.homeRecent}</Section>
+                {recent.map((tx) => (
+                  <TxRow
+                    key={tx.id}
+                    tx={tx}
+                    accounts={accounts}
+                    categories={categories}
+                    t={t}
+                    onPress={() => navigation.navigate('TransactionDetail', { txId: tx.id })}
+                  />
+                ))}
+                {ledger.transactions.length > recent.length ? (
+                  <Btn
+                    title={t.showAll(ledger.transactions.length)}
+                    onPress={() => navigation.navigate('Tabs', { screen: 'Transactions' })}
+                    kind="secondary"
+                    icon="expand-more"
+                  />
+                ) : null}
+              </>
+            )}
           </>
         )}
-        {ledger.transactions.length === 0 ? (
-          <EmptyState icon="receipt-long" title={t.homeNoTx} body={t.homeNoTxBody} />
-        ) : (
-          <>
-            <Section>{t.homeRecent}</Section>
-            {recent.map((tx) => (
-              <TxRow
-                key={tx.id}
-                tx={tx}
-                accounts={accounts}
-                categories={categories}
-                t={t}
-                onPress={() => navigation.navigate('TransactionDetail', { txId: tx.id })}
-              />
-            ))}
-          </>
-        )}
-        {ledger.accounts.length > 0 && ledger.transactions.length === 0 ? <Body>{t.homeAddHint}</Body> : null}
       </Screen>
       <Fab onPress={() => navigation.navigate('AddTransaction', {})} label={t.homeFab} />
     </View>

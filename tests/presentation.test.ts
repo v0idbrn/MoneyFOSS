@@ -13,6 +13,7 @@ import { TX_KINDS, describeTransaction } from '../app/src/lib/describe.ts';
 import { displayCategoryName } from '../app/src/lib/categories.ts';
 import { STRINGS } from '../app/src/i18n.ts';
 import { EMPTY_FILTER, activeFilterCount, filterTransactions, sortNewestFirst } from '../app/src/lib/filters.ts';
+import { snapshotEntries } from '../app/src/lib/snapshot.ts';
 import { money } from '../src/domain/money.ts';
 import { cardPayment, exchange, expense, income, transfer } from '../src/domain/operations.ts';
 import { RATE_1180, TODAY, acct, cat, refs } from './fixtures.ts';
@@ -129,4 +130,30 @@ test('hostile entry input fails safely through the same path the UI uses', () =>
   throwsCode(() => parseMoney('', 'ARS'), 'INVALID_MONEY_FORMAT');
   assert.equal(parseMoney(normalizeAmountInput('-5'), 'ARS').amount, -500n);
   assert.equal(parseMoney(normalizeAmountInput('0'), 'ARS').amount, 0n);
+});
+
+test('home snapshot totals every visible currency, counts single-currency accounts, excludes equity', () => {
+  const txs = [
+    expense({ refs, id: 's1', date: TODAY, account: acct('bank-ars'), amount: money(500n, 'ARS'), category: cat('food') }),
+    transfer({ refs, id: 's2', date: TODAY, from: acct('cash-ars'), to: acct('bank-ars'), amount: money(100n, 'ARS') }),
+  ];
+  const entries = snapshotEntries([acct('bank-ars'), acct('cash-ars'), acct('card-ars'), acct('bank-usd'), acct('opening-ars')], txs);
+  assert.deepEqual(entries.map((e) => e.currency), ['ARS', 'USD']);
+  const ars = entries[0]!;
+  const usd = entries[1]!;
+  assert.equal(ars.total, -500n);
+  assert.equal(ars.count, 3);
+  assert.equal(usd.total, 0n);
+  assert.equal(usd.count, 1);
+  assert.equal(snapshotEntries([], txs).length, 0);
+});
+
+test('row details localize through the same describe path the UI uses', () => {
+  const [, , transferTx, cardTx, convTx] = sampleLedger();
+  assert.equal(describeTransaction(transferTx!, accounts, categories, STRINGS.es).detail, 'Transferencia entre cuentas');
+  assert.equal(describeTransaction(transferTx!, accounts, categories, STRINGS.en).detail, 'Transfer between accounts');
+  assert.equal(describeTransaction(cardTx!, accounts, categories, STRINGS.es).detail, 'Pago a tarjeta de crédito');
+  assert.equal(describeTransaction(cardTx!, accounts, categories, STRINGS.en).detail, 'Credit card payment');
+  assert.equal(describeTransaction(convTx!, accounts, categories, STRINGS.es).detail, 'Tasa 1180');
+  assert.equal(describeTransaction(convTx!, accounts, categories, STRINGS.en).detail, 'Rate 1180');
 });

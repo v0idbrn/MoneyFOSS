@@ -12,7 +12,7 @@ import { useLedger } from '../state';
 import { useStrings } from '../lang';
 import { normalizeAmountInput } from '../lib/format';
 import { displayCategoryName } from '../lib/categories';
-import { Btn, Chip, ErrorState, Field, H1, Meta, Screen, useToast } from '../components';
+import { Btn, Chip, EmptyState, ErrorState, Field, H1, Meta, Screen, useToast } from '../components';
 import type { EntryKind, RootStackParamList } from '../navtypes';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -205,6 +205,24 @@ export default function AddTransaction(): React.JSX.Element {
   }
 
   const pickedAccount = accounts.get(accountId);
+
+  if (spendable.length === 0) {
+    return (
+      <Screen>
+        <H1>{t.entryTitle}</H1>
+        <EmptyState
+          icon="account-balance-wallet"
+          title={t.entryNoAccounts}
+          body={t.entryNoAccountsBody}
+          actionLabel={t.homeGoAccounts}
+          onAction={() => {
+            navigation.goBack();
+            navigation.navigate('Tabs', { screen: 'Accounts' });
+          }}
+        />
+      </Screen>
+    );
+  }
 
   return (
     <Screen>

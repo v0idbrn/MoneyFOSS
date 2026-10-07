@@ -41,7 +41,10 @@ export function describeTransaction(
     return {
       kind: 'conversion',
       title: `${conversion.fromCurrency} → ${conversion.toCurrency}`,
-      detail: `Rate ${conversion.rateText}${fee ? ' · with fee' : ''}`,
+      detail:
+        t !== undefined
+          ? `${t.rateLabel} ${conversion.rateText}${fee ? ` · ${t.withFee}` : ''}`
+          : `Rate ${conversion.rateText}${fee ? ' · with fee' : ''}`,
       amounts,
       hasFee: fee,
     };
@@ -54,7 +57,7 @@ export function describeTransaction(
     const where = valuePostings.map((posting) => accountName(accounts, posting.accountId)).join(', ');
     return {
       kind: 'expense',
-      title: category ?? 'Expense',
+      title: category ?? (t !== undefined ? t.kinds.expense : 'Expense'),
       detail: where,
       amounts,
       hasFee: false,
@@ -68,7 +71,7 @@ export function describeTransaction(
     const where = valuePostings.map((posting) => accountName(accounts, posting.accountId)).join(', ');
     return {
       kind: 'income',
-      title: category ?? 'Income',
+      title: category ?? (t !== undefined ? t.kinds.income : 'Income'),
       detail: where,
       amounts,
       hasFee: false,
@@ -80,12 +83,21 @@ export function describeTransaction(
   const title =
     from !== undefined && to !== undefined
       ? `${accountName(accounts, from.accountId)} → ${accountName(accounts, to.accountId)}`
-      : 'Transfer';
+      : t !== undefined
+        ? t.kinds.transfer
+        : 'Transfer';
   const destination = to !== undefined ? accounts.get(to.accountId) : undefined;
   return {
     kind: destination?.type === 'LIABILITY' ? 'card-payment' : 'transfer',
     title,
-    detail: destination?.type === 'LIABILITY' ? 'Credit card payment' : 'Transfer between accounts',
+    detail:
+      destination?.type === 'LIABILITY'
+        ? t !== undefined
+          ? t.rowCardPayment
+          : 'Credit card payment'
+        : t !== undefined
+          ? t.rowTransfer
+          : 'Transfer between accounts',
     amounts,
     hasFee: false,
   };

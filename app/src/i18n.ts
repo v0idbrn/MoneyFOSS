@@ -156,6 +156,12 @@ export interface Dict {
   readonly toastSaved: string;
   readonly toastDeleted: string;
   readonly toastCreated: string;
+  readonly rateLabel: string;
+  readonly withFee: string;
+  readonly rowTransfer: string;
+  readonly rowCardPayment: string;
+  readonly entryNoAccounts: string;
+  readonly entryNoAccountsBody: string;
   readonly seedCategoryNames: Record<SeedCategoryId, string>;
 }
 
@@ -305,6 +311,12 @@ const es: Dict = {
   toastSaved: 'Movimiento guardado',
   toastDeleted: 'Eliminado',
   toastCreated: 'Creado',
+  rateLabel: 'Tasa',
+  withFee: 'con comisión',
+  rowTransfer: 'Transferencia entre cuentas',
+  rowCardPayment: 'Pago a tarjeta de crédito',
+  entryNoAccounts: 'Sin cuentas todavía',
+  entryNoAccountsBody: 'Creá una cuenta antes de registrar movimientos. Puede ser efectivo, un banco o una tarjeta.',
   seedCategoryNames: {
     'cat:food': 'Comida',
     'cat:transport': 'Transporte',
@@ -466,6 +478,12 @@ const en: Dict = {
   toastSaved: 'Transaction saved',
   toastDeleted: 'Deleted',
   toastCreated: 'Created',
+  rateLabel: 'Rate',
+  withFee: 'with fee',
+  rowTransfer: 'Transfer between accounts',
+  rowCardPayment: 'Credit card payment',
+  entryNoAccounts: 'No accounts yet',
+  entryNoAccountsBody: 'Create an account before recording transactions. It can be cash, a bank, or a card.',
   seedCategoryNames: {
     'cat:food': 'Food',
     'cat:transport': 'Transport',

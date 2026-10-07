@@ -46,7 +46,7 @@ System font (zero font dependencies). Scale: hero 28/700 · title 20/700 · sect
 
 ## 5. Components (`app/src/components.tsx`)
 
-`Screen` (SafeArea + scroll + padding) · `H1/Section/Body/Meta/Small` · `Amount` (grouped exact integer formatting + `accessibilityLabel` "minus/plus …") · `Btn` (primary/secondary/danger, ripple, disabled state) · `Field` (label + input + inline error, `accessibilityLabel`, error has `role="alert"`) · `Chip` (filters/options, `selected` state) · `EmptyState` (icon + what-next + optional action) · `ErrorState` (icon + domain message, no stack traces) · `Fab` (single primary action) · `TxRow` (icon by kind + title + date/detail + signed amount lines).
+`Screen` (SafeArea + scroll + padding) · `H1/Section/Body/Meta/Small` · `Amount` (grouped exact integer formatting + `accessibilityLabel` "minus/plus …") · `Btn` (primary/secondary/danger, ripple, disabled state) · `Field` (label + input + inline error, `accessibilityLabel`, error has `role="alert"`) · `Chip` (filters/options, `selected` state) · `EmptyState` (icon + what-next + optional action) · `ErrorState` (icon + domain message, no stack traces; título y "Try again" localizados vía `Dict`) · `Fab` (single primary action) · `TxRow` (icon by kind + title + date/detail + signed amount lines).
 
 ## 6. Iconography
 
@@ -71,7 +71,8 @@ Amount input: `decimal-pad` keyboard, strict domain parse (`parseMoney`) after n
 ## 9. Display rules (presentation, not ledger)
 
 - `app/src/lib/format.ts`: grouping via `Intl` on the integer part only (BigInt, exact); decimal mark canonical `.` (limitation documented: full locale decimal marks = future work); `+`/`−` prefixes; screen-reader labels.
-- `app/src/lib/describe.ts`: kind/title/detail/amount-lines per transaction (expense/income by category; transfer/card-payment by account direction; conversion by currencies + rate + fee flag). Pure, tested.
+- `app/src/lib/describe.ts`: kind/title/detail/amount-lines per transaction (expense/income by category; transfer/card-payment by account direction; conversion by currencies + rate + fee flag). Detail strings localizan cuando se pasa `Dict` (fallback EN sin `Dict`). Pure, tested.
+- `app/src/lib/snapshot.ts`: entrada del resumen de Home — totales vía `currencyTotals` del dominio; incluye monedas de cuentas sin movimientos (total 0), excluye `EQUITY`, cuenta una sola moneda por cuenta. Presentación, no segunda verdad. Tested.
 - `app/src/lib/filters.ts`: text (memo/id/category/account, case-insensitive) + account + category + kind; visible active count; one-tap clear; newest-first stable sort.
 - Balances: **domain-derived only** (`src/domain/balances.ts`, pure Σ). The UI never sums around the domain.
 

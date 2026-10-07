@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { colors, radius, spacing, type } from './theme';
 import { accessibilityAmount, formatDisplayAmount } from './lib/format';
 import { describeTransaction } from './lib/describe';
+import { useStrings } from './lang';
 import type { Dict } from './i18n';
 import type { Account, Category, Transaction } from '../../src/domain/types.ts';
 
@@ -211,14 +212,15 @@ export function EmptyState({
 }
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }): React.JSX.Element {
+  const { t } = useStrings();
   return (
     <View style={styles.empty}>
       <MaterialIcons name="error-outline" size={40} color={colors.danger} />
-      <Text style={styles.emptyTitle}>Couldn&apos;t load this data</Text>
+      <Text style={styles.emptyTitle}>{t.couldntLoad}</Text>
       <Text style={styles.emptyBody}>{message}</Text>
       {onRetry !== undefined ? (
         <View style={styles.emptyAction}>
-          <Btn title="Try again" onPress={onRetry} kind="secondary" />
+          <Btn title={t.tryAgain} onPress={onRetry} kind="secondary" />
         </View>
       ) : null}
     </View>

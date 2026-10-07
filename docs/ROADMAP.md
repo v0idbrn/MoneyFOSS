@@ -67,7 +67,7 @@
 - [x] accounts, transactions, income, expense, transfers, adjustments
 - [x] categories, subcategories, notes, dates
 - [x] multicurrency correctness, conversion correctness
-- [ ] **UX Polish - Home**: Empty states, loading, empty states for recent transactions
+- [x] **UX Polish - Home**: per-currency snapshot (todos los currencies visibles, cuentas en cero incluidas, equity excluido), empty states sin apilar, "Mostrar todo" a Movimientos, detail ES/EN en filas
 - [ ] **UX Polish - Accounts**: Balance formatting, visual hierarchy, edit flow
 - [ ] **UX Polish - Transactions**: Filtering UX, sorting, search
 - [ ] **UX Polish - Transaction Detail**: Postings display, conversion display
@@ -82,12 +82,13 @@
 - [x] Deterministic calculations
 
 #### P0.3 UX Polish (Current Sprint)
-- [ ] **Home**: Balance display for empty states, better recent transactions list
+- [x] **Home**: snapshot por moneda con cuentas en cero y sin equity, un solo empty state, "Mostrar todo" a Movimientos, FAB con guardia de cuentas en AddTransaction
 - [ ] **Accounts**: Visual hierarchy, balance display, edit flow polish
 - [ ] **Transactions**: Filter UX, empty states, sorting indicators
 - [ ] **Transaction Detail**: Better postings display, conversion breakdown
 - [ ] **Categories**: Hierarchy support, usage counts, merge/delete safety
 - [x] **Feedback**: success toasts on save/create/delete (in-house, zero deps; errors stay inline)
+- [x] **ErrorState/rows ES/EN**: `ErrorState` y detalles de fila (transferencia/pago/tasa/comisión) localizados vía `Dict` — sin strings hardcodeados en componentes compartidos
 - [ ] **Feedback rest**: loading states (reads are sync; only DB-open spinner exists)
 
 #### P0.4 Persistence
@@ -114,7 +115,7 @@
 
 | Priority | Feature | Status | Effort | Risk |
 |----------|---------|--------|--------|------|
-| 1 | **Home UX Polish** | Ready | S | Low |
+| 1 | **Home UX Polish** | Done (T-029 tree) | S | Low |
 | 2 | **Accounts UX Polish** | Ready | M | Low |
 | 3 | **Transaction Detail Polish** | Ready | M | Low |
 | 4 | **Categories CRUD Polish** | Ready | S | Low |
@@ -179,7 +180,7 @@
 
 ### This Week (Vertical Slices)
 
-1. **Home UX Polish** - Empty states, balance display, recent transactions
+1. ~~**Home UX Polish**~~ Done — snapshot, empty states, "Mostrar todo", ES/EN de filas
 2. **Accounts Screen** - Visual hierarchy, balance display, edit flow
 3. **Transaction Detail** - Postings display, conversion breakdown
 4. **Categories** - Hierarchy, usage counts, merge safety
