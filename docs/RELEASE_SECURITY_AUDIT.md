@@ -1,6 +1,6 @@
 # MoneyFOSS — Release Security Audit
 
-**Fecha:** 2026-10-07 · **Fuente:** HEAD `4279e79` (código exacto del bundle; cambios posteriores solo documentales).
+**Fecha:** 2026-10-07 · **Fuente:** HEAD `ae8aae8` (código exacto del bundle; cambios posteriores solo documentales).
 
 ## Executive Summary
 
@@ -16,24 +16,24 @@ Release APK real producido localmente (no debug): 82 MB con R8+shrink, **cero pe
 | Comando | `expo prebuild --clean` + `gradlew -p android assembleRelease --max-workers=2` (online; `--offline` cuelga configure en este entorno: requiere red para resolución) |
 | Variante | release (R8 `minifyReleaseWithR8` ejecutado, `mapping.txt` generado, shrinkResources, sin flag `debuggable`) |
 | Firma | **keystore producción** (`CN=MoneyFOSS`, SHA-256 `83389ea5…326c`) — **no debug key** |
-| Tamaño / SHA-256 | 82.029.376 B / `A7AA149179084E0C2616F7CEFBF6F1445737212AE2D7DFBAD230B2A1D2315BE5` |
+| Tamaño / SHA-256 | 82.029.380 B / `B7C6D34AC3DE52463F4680F26A39C3E68412A830040FA435AE143C2E4CAF805E` |
 | Ruta | `app/android/app/build/outputs/apk/release/app-release.apk` (gitignored) |
 | Resultado | `BUILD SUCCESSFUL`, 360 tareas; bundle Metro reconstruido (`createBundleReleaseJsAndAssets`) |
 
 ## Final APK Evidence
 
-Ver §Build Evidence. Este artefacto (SHA `A7AA1491…315BE5`, fuente HEAD `4279e79`) supera al APK de T-028 para toda conclusión de release; no mezclarlos. Incluye los cambios desde entonces: P0 UX polish (snapshot/lista de Home, `FormError` localizado con retry en el gate, hints de listas vacías, two-tap delete en categorías, feedback en renames, conteos honestos). T-028 queda como historial.
+Ver §Build Evidence. Este artefacto (SHA `B7C6D34A…F805E`, fuente HEAD `ae8aae8`) supera al APK de T-029 para toda conclusión de release; no mezclarlos. Delta desde T-029: 1 commit de fix (`ae8aae8`, padding de pantalla para liberar el FAB); gates de manifest/firma idénticos y re-verificados. T-029 queda como historial.
 
 ## CURRENT RELEASE ARTIFACT
 
 - version: 1.0.0 · versionCode: 1 · `com.moneyfoss.app`
 - APK: `app/android/app/build/outputs/apk/release/app-release.apk` (gitignored)
-- SHA-256: `A7AA149179084E0C2616F7CEFBF6F1445737212AE2D7DFBAD230B2A1D2315BE5`
-- size: 82.029.376 B · firmado producción (`CN=MoneyFOSS`, cert SHA-256 `83389ea5…326c`)
+- SHA-256: `B7C6D34AC3DE52463F4680F26A39C3E68412A830040FA435AE143C2E4CAF805E`
+- size: 82.029.380 B · firmado producción (`CN=MoneyFOSS`, cert SHA-256 `83389ea5…326c`)
 - R8 + shrinkResources, sin `debuggable`, `allowBackup=false`
 - permisos: solo propio DYNAMIC_RECEIVER; sin INTERNET/storage/alert/vibrate/network-state
-- fuente: HEAD `4279e79` (bundle reconstruido de ese código); suite 140/140 + typechecks en 0 + `expo export` OK
-- registro: DECISIONS T-029 (supera al artefacto de T-028)
+- fuente: HEAD `ae8aae8` (bundle reconstruido de ese código); suite 140/140 + typechecks en 0 + `expo export` OK
+- registro: DECISIONS T-030 (supera al artefacto de T-029)
 
 ## Permissions (VERIFIED vía aapt2 sobre el APK final)
 

@@ -254,6 +254,15 @@ Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisi
 - **Evidencia:** `assembleRelease` OK (Gradle 9.3.1, JDK Temurin 17.0.20.1): `app-release.apk`, 82.023.112 B, SHA-256 `0BAEE0CB…1552506`, `com.moneyfoss.app` v1.0.0, R8+shrink verificados (`minifyReleaseWithR8`, `mapping.txt`, sin `debuggable`). Manifest final (aapt2): cero permisos peligrosos (INTERNET/storage/alert/vibrate eliminados vía `blockedPermissions`), `allowBackup=false`, solo MainActivity exportada (+ receiver estándar con permiso DUMP), sin deep links. Dex tras R8 conserva `okhttp3`/`expo.modules.fetch` (sin permiso, sin uso). Fuente: HEAD `929b84b`, árbol limpio.
 - **NO evidencia:** firma release (firmado con clave debug `CN=Android Debug`: no distribuible; el keystore release es acción del usuario fuera del repo), tráfico real, runtime en dispositivo. T-019 y T-021 siguen PROVISIONALES sin cambios.
 
+### T-030 — Cuarto release APK (fix FAB sobre contenido)
+
+- **Estado:** PROVISIONAL (evidencia de artefacto; runtime en dispositivo pendiente)
+- **Fecha:** 2026-10-07
+- **SUPERSEDE (artefacto):** el APK de T-029 como referencia vigente; la evidencia de T-029 se conserva como historial.
+- **Alcance del código:** 1 commit (`ae8aae8`) — `screenContent.paddingBottom = xxl + FAB(60)` en el estilo compartido: la última fila y el botón "Mostrar todo" dejan de quedar bajo el FAB absoluto en Home/Transactions (fix raíz en un solo lugar, no por screen).
+- **Evidencia:** `assembleRelease` OK: `app-release.apk`, 82.029.380 B, SHA-256 `B7C6D34A…F805E`, `com.moneyfoss.app` v1.0.0 (versionCode 1), bundle Metro reconstruido (`createBundleReleaseJsAndAssets`); dex/R8 sin cambios (solo JS), `minifyReleaseWithR8`/`optimizeReleaseResources` vigentes, sin `debuggable`, `allowBackup=false`, firmado producción (`CN=MoneyFOSS`, cert `83389ea5…326c`). Manifest (aapt2): único `uses-permission` propio (DYNAMIC_RECEIVER); sin INTERNET/storage/alert/vibrate/network-state; exportados: launcher MainActivity + receiver estándar DUMP; sin deep links. Fuente: HEAD `ae8aae8`; suite 140/140 + typechecks en 0.
+- **NO evidencia:** tráfico real, runtime en dispositivo. T-019 y T-021 siguen PROVISIONALES sin cambios.
+
 ### T-029 — Tercer release APK (P0 UX polish: Home/Accounts/errores, suite 140)
 
 - **Estado:** PROVISIONAL (evidencia de artefacto; runtime en dispositivo pendiente)
