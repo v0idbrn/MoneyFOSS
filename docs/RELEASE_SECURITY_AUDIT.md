@@ -1,10 +1,10 @@
 # MoneyFOSS — Release Security Audit
 
-**Fecha:** 2026-10-07 · **Fuente:** HEAD `7d617c4` (código exacto del bundle; cambios posteriores solo documentales).
+**Fecha:** 2026-10-07 · **Fuente:** HEAD `c5f8e99` (código exacto del bundle; cambios posteriores solo documentales).
 
 ## Executive Summary
 
-Release APK real producido localmente (no debug): 82 MB con R8+shrink, **cero permisos peligrosos**, `allowBackup=false`, **firmado con keystore de producción** (CN=MoneyFOSS). Suite 157/157, typechecks en 0, bundle verificado. Veredicto: **RELEASE CANDIDATE — DEVICE GATES REMAIN**.
+Release APK real producido localmente (no debug): 82 MB con R8+shrink, **cero permisos peligrosos**, `allowBackup=false`, **firmado con keystore de producción** (CN=MoneyFOSS). Suite 161/161, typechecks en 0, bundle verificado. Veredicto: **RELEASE CANDIDATE — DEVICE GATES REMAIN**.
 
 ## Build Evidence (VERIFIED)
 
@@ -16,24 +16,24 @@ Release APK real producido localmente (no debug): 82 MB con R8+shrink, **cero pe
 | Comando | `expo prebuild --clean` + `gradlew -p android assembleRelease --max-workers=2` (online; `--offline` cuelga configure en este entorno: requiere red para resolución) |
 | Variante | release (R8 `minifyReleaseWithR8` ejecutado, `mapping.txt` generado, shrinkResources, sin flag `debuggable`) |
 | Firma | **keystore producción** (`CN=MoneyFOSS`, SHA-256 `83389ea5…326c`) — **no debug key** |
-| Tamaño / SHA-256 | 82.063.632 B / `6753476F28B19F606A8B57C03642763703459AF6A1FD0D51F8BA8E92573452FC` |
+| Tamaño / SHA-256 | 82.069.792 B / `D86745B0123055D4877D9D11F9771545B22499C2BA67DBB2BD7380217D78B025` |
 | Ruta | `app/android/app/build/outputs/apk/release/app-release.apk` (gitignored) |
 | Resultado | `BUILD SUCCESSFUL`, 360 tareas; bundle Metro reconstruido (`createBundleReleaseJsAndAssets`) |
 
 ## Final APK Evidence
 
-Ver §Build Evidence. Este artefacto (SHA `6753476F…452FC`, fuente HEAD `7d617c4`) supera al APK de T-030 para toda conclusión de release; no mezclarlos. Delta desde T-030: Fase 3 completa (export CSV/JSON, import CSV con pipeline de preview/confirm atómico, fix BOM) + Budgets v1 (schema v2) + fixes de copy/UI; 12 commits. Gates de manifest/firma idénticos y re-verificados (build-tools 36.0.0 para inspección). T-030 queda como historial (su archivo de build fue sobrescrito; evidencia durable en DECISIONS T-030).
+Ver §Build Evidence. Este artefacto (SHA `D86745B0…8B025`, fuente HEAD `c5f8e99`) supera al APK de T-033 para toda conclusión de release; no mezclarlos. Delta desde T-033: JSON export v2 con `budgets[]` (T-034) + Reports v1 (T-035). Gates de manifest/firma idénticos y re-verificados. T-033 queda como historial.
 
 ## CURRENT RELEASE ARTIFACT
 
 - version: 1.0.0 · versionCode: 1 · `com.moneyfoss.app`
-- APK: `app/android/app/build/outputs/apk/release/app-release.apk` (gitignored) — copia estable en `C:\Users\WinterOS\.moneyfoss\releases\app-release-T033.apk`
-- SHA-256: `6753476F28B19F606A8B57C03642763703459AF6A1FD0D51F8BA8E92573452FC`
-- size: 82.063.632 B · firmado producción (`CN=MoneyFOSS`, cert SHA-256 `83389ea5…326c`), `apksigner verify` exit=0
+- APK: `app/android/app/build/outputs/apk/release/app-release.apk` (gitignored) — copia estable en `C:\Users\WinterOS\.moneyfoss\releases\app-release-T036.apk`
+- SHA-256: `D86745B0123055D4877D9D11F9771545B22499C2BA67DBB2BD7380217D78B025`
+- size: 82.069.792 B · firmado producción (`CN=MoneyFOSS`, cert SHA-256 `83389ea5…326c`), `apksigner verify` exit=0
 - R8 + shrinkResources, sin `debuggable`, `allowBackup=false`
 - permisos: solo propio DYNAMIC_RECEIVER; sin INTERNET/storage/alert/vibrate/network-state
-- fuente: HEAD `7d617c4` (bundle reconstruido de ese código); suite 157/157 + typechecks en 0 + `expo export` OK
-- registro: DECISIONS T-033 (supera al artefacto de T-030)
+- fuente: HEAD `c5f8e99` (bundle reconstruido de ese código); suite 161/161 + typechecks en 0 + `expo export` OK
+- registro: DECISIONS T-036 (supera al artefacto de T-033)
 
 ## Permissions (VERIFIED vía aapt2 sobre el APK final)
 

@@ -348,6 +348,17 @@ Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisi
 
 ---
 
+### T-036 — Sexto release APK (budgets UI fixes + JSON export v2 + Reports v1)
+
+- **Estado:** PROVISIONAL (evidencia de artefacto; runtime en dispositivo pendiente)
+- **Fecha:** 2026-10-07
+- **SUPERSEDE (artefacto):** el APK de T-033 como referencia vigente; la evidencia de T-033 se conserva como historial. Copia estable en `C:\Users\WinterOS\.moneyfoss\releases\app-release-T036.apk`.
+- **Alcance del código desde `7d617c4`:** 3 commits — JSON export v2 con `budgets[]` y copy actualizado (`7be5b73`), Reports v1 (`c5f8e99`), docs T-033 (`dee97ce`, solo documentación).
+- **Evidencia:** `assembleRelease` OK (6m11s, online, `--max-workers=2`): `app-release.apk`, 82.069.792 B, SHA-256 `D86745B0123055D4877D9D11F9771545B22499C2BA67DBB2BD7380217D78B025`, `com.moneyfoss.app` v1.0.0 (versionCode 1). `apksigner verify` exit=0, firma producción (`CN=MoneyFOSS`, cert SHA-256 `83389ea5…326c`). Manifest (aapt2, build-tools 36.0.0): un solo `uses-permission` = `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` propio (cero `android.permission.*`), `allowBackup=false`, sin `debuggable`, exportados: launcher + receiver estándar (×2). Fuente: HEAD `c5f8e99`, árbol limpio; suite 161/161 + typechecks en 0 + `expo export` OK en la misma fuente.
+- **NO evidencia:** runtime en dispositivo. T-019, T-021, T-031, T-032 y T-035 siguen PROVISIONALES sin cambios.
+
+---
+
 ## Cómo añadir una decisión nueva
 
 ```
