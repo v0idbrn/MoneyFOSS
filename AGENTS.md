@@ -2,7 +2,7 @@
 
 Reglas obligatorias para **cualquier agente** (humano asistido o autónomo) que trabaje en este repositorio.
 
-**Estado del proyecto:** Fase 0 (planificación). NO existe código de producción. La arquitectura autoritativa es [`docs/PHASE0_REPORT.md`](docs/PHASE0_REPORT.md) y el registro de decisiones es [`docs/DECISIONS.md`](docs/DECISIONS.md). Si este archivo contradice esos documentos, prevalecen los documentos.
+**Estado del proyecto:** desarrollo continuo de producto (fases 0–2 cerradas; dominio, persistencia y app implementados con tests). La arquitectura autoritativa es [`docs/PHASE0_REPORT.md`](docs/PHASE0_REPORT.md) y el registro de decisiones es [`docs/DECISIONS.md`](docs/DECISIONS.md). Si este archivo contradice esos documentos, prevalecen los documentos.
 
 ---
 

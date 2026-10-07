@@ -1,13 +1,15 @@
 # MoneyFOSS — Architecture
 
-**Estado:** Fase 2 en curso (persistencia implementada y verificada; ver `docs/PHASE2_PERSISTENCE.md`). Este documento cubre lo que ya existe y las reglas que las fases siguientes deben respetar. La fuente de autoridad de decisiones sigue siendo `docs/DECISIONS.md`.
+**Estado:** desarrollo continuo de producto (fases 0–2 cerradas y verificadas; app implementada). Este documento cubre lo que ya existe y las reglas que las fases siguientes deben respetar. La fuente de autoridad de decisiones sigue siendo `docs/DECISIONS.md`.
 
 ## 1. Capas
 
 ```
 ┌─────────────────────────────────────────────┐
-│ UI (React Native + Expo CNG, T-020)         │  Fase 3+
-│  - rendering, input, navegación             │
+│ UI (React Native + Expo CNG, T-020)         │  ← EXISTE
+│  - 8 pantallas, navegación Tabs + Stack     │
+│  - llama operaciones del dominio; saldos    │
+│    derivados vía src/domain/balances.ts     │
 ├─────────────────────────────────────────────┤
 │ Aplicación / puertos           ← EXISTE    │
 │  - repositorio sobre puerto Db mínimo       │
@@ -34,6 +36,7 @@ El dominio no conoce SQLite, React, ni `Date.now()` (las fechas entran como dato
 | `validate.ts` | **único punto de validación**: Σ por moneda = 0 exacta, bridge ⇔ Conversion, categorías, moneda de cuenta, re-derivación |
 | `operations.ts` | constructores de operaciones (expense, income, transfer, cardPurchase, cardPayment, exchange, buildTransaction) con guardas explícitas |
 | `serialize.ts` | wire estricto (`toWire`/`fromWire`) + JSON canónico `stableStringify` |
+| `balances.ts` | derivación pura Σ por cuenta/moneda (única fuente de saldos para la UI) |
 
 ## 2b. Módulos (`src/persistence/`)
 
@@ -45,6 +48,10 @@ El dominio no conoce SQLite, React, ni `Date.now()` (las fechas entran como dato
 | `repository.ts` | mapping dominio↔filas con validación en escritura y lectura; sin SQL fuera de aquí |
 | `drivers/node-sqlite.ts` | driver de verificación con `node:sqlite` (stdlib, ejecutado por los tests) |
 | `drivers/expo-sqlite.ts` | adapter de producción (T-021 PROVISIONAL, no ejecutado aquí) |
+
+## 2c. App (`app/src/`)
+
+Pantallas: Home, Accounts, AccountDetail, Transactions, TransactionDetail, AddTransaction (6 tipos de operación), Categories, More. `lib/` pura y testeada (`format`, `describe`, `filters`); `db.ts` abre expo-sqlite + migra + siembra categorías; `state.tsx` re-deriva todo en cada `refresh()` (sin caché financiera). i18n ES/EN con completitud en compile-time; locale persistido en `schema_meta`.
 
 ## 3. Reglas vinculantes (resumen; el texto normativo vive en AGENTS/DECISIONS)
 
@@ -65,8 +72,8 @@ El dominio no conoce SQLite, React, ni `Date.now()` (las fechas entran como dato
 ## 5. Verificación
 
 ```powershell
-npm test          # node --test "tests/*.test.ts" (118 tests: dominio + persistencia)
+npm test          # node --test "tests/*.test.ts" (138 tests: dominio + persistencia + presentación)
 npm run typecheck # tsc --noEmit (strict + erasableSyntaxOnly)
 ```
 
-Tests de Fase 3+ a agregar (§24): pipeline de import con commit parcial, round-trip completo de backup, gates de manifest Android (§32.4).
+Pendiente (§24): pipeline de import con commit parcial, round-trip completo de backup, gates de manifest Android (§32.4).
