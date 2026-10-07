@@ -7,7 +7,7 @@ import { eraseAllData, getDb } from '../db';
 import { useLedger } from '../state';
 import { useStrings } from '../lang';
 import type { Lang } from '../i18n';
-import { Body, Btn, Chip, Divider, H1, Meta, Screen, Section } from '../components';
+import { Body, Btn, Chip, Divider, FormError, H1, Meta, Screen, Section, useToast } from '../components';
 import type { RootStackParamList } from '../navtypes';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -16,8 +16,9 @@ export default function More(): React.JSX.Element {
   const navigation = useNavigation<Nav>();
   const ledger = useLedger();
   const { t, lang, setLang } = useStrings();
+  const showToast = useToast();
   const [armed, setArmed] = useState(false);
-  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   function erase(): void {
     if (!armed) {
@@ -27,17 +28,18 @@ export default function More(): React.JSX.Element {
     try {
       eraseAllData(getDb());
       setArmed(false);
-      setMessage(t.moreErased);
+      setError('');
+      showToast(t.moreErased, 'success');
       ledger.refresh();
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : String(e));
+      setError(e instanceof Error ? e.message : String(e));
       setArmed(false);
     }
   }
 
   function pick(next: Lang): void {
+    setArmed(false);
     setLang(next);
-    ledger.refresh();
   }
 
   return (
@@ -71,7 +73,7 @@ export default function More(): React.JSX.Element {
       <Divider />
       <Section>{t.moreDanger}</Section>
       <Btn title={armed ? t.moreConfirmErase : t.moreErase} onPress={erase} kind="danger" icon="delete-forever" />
-      {message !== '' ? <Meta>{message}</Meta> : null}
+      {error !== '' ? <FormError message={error} /> : null}
     </Screen>
   );
 }

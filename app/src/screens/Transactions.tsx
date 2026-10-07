@@ -96,14 +96,14 @@ export default function Transactions(): React.JSX.Element {
           <Body>{t.txsNoMatch}</Body>
         ) : (
           <>
-            <Meta>{t.showing(shown.length, ledger.transactions.length)}</Meta>
+            <Meta>{t.showing(shown.length, visible.length)}</Meta>
             {shown.map((tx) => (
               <TxRow
                 key={tx.id}
                 tx={tx}
-              accounts={accounts}
-              categories={categories}
-              t={t}
+                accounts={accounts}
+                categories={categories}
+                t={t}
                 onPress={() => navigation.navigate('TransactionDetail', { txId: tx.id })}
               />
             ))}
