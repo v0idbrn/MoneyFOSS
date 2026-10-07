@@ -174,6 +174,18 @@ export interface Dict {
   readonly importNewCategories: string;
   readonly importNothing: string;
   readonly importDone: string;
+  readonly budgetsTitle: string;
+  readonly budgetsSubtitle: string;
+  readonly budgetsEmpty: string;
+  readonly budgetsEmptyBody: string;
+  readonly budgetsNewSection: string;
+  readonly budgetsCategory: string;
+  readonly budgetsCurrency: string;
+  readonly budgetsLimit: string;
+  readonly budgetsCreate: string;
+  readonly budgetsRemaining: string;
+  readonly budgetsPickCategory: string;
+  readonly budgetsNeedPositive: string;
   readonly a11yMinus: string;
   readonly a11yPlus: string;
   readonly a11yZero: string;
@@ -354,6 +366,18 @@ const es: Dict = {
   importNewCategories: 'Categorías nuevas',
   importNothing: 'Sin movimientos nuevos para importar.',
   importDone: 'Importación completada.',
+  budgetsTitle: 'Presupuestos',
+  budgetsSubtitle: 'Límite mensual por categoría y moneda. Solo descriptivo: medido desde el ledger.',
+  budgetsEmpty: 'Sin presupuestos todavía',
+  budgetsEmptyBody: 'Elegí una categoría, una moneda y un límite mensual.',
+  budgetsNewSection: 'Nuevo presupuesto (o actualizar el límite)',
+  budgetsCategory: 'Categoría',
+  budgetsCurrency: 'Moneda',
+  budgetsLimit: 'Límite mensual',
+  budgetsCreate: 'Guardar presupuesto',
+  budgetsRemaining: 'Restante',
+  budgetsPickCategory: 'Elegí una categoría.',
+  budgetsNeedPositive: 'El límite debe ser mayor a cero.',
   a11yMinus: 'menos',
   a11yPlus: 'más',
   a11yZero: 'cero',
@@ -546,6 +570,18 @@ const en: Dict = {
   importNewCategories: 'New categories',
   importNothing: 'No new transactions to import.',
   importDone: 'Import finished.',
+  budgetsTitle: 'Budgets',
+  budgetsSubtitle: 'Monthly limit per category and currency. Descriptive only: measured from the ledger.',
+  budgetsEmpty: 'No budgets yet',
+  budgetsEmptyBody: 'Pick a category, a currency and a monthly limit.',
+  budgetsNewSection: 'New budget (or update the limit)',
+  budgetsCategory: 'Category',
+  budgetsCurrency: 'Currency',
+  budgetsLimit: 'Monthly limit',
+  budgetsCreate: 'Save budget',
+  budgetsRemaining: 'Remaining',
+  budgetsPickCategory: 'Pick a category.',
+  budgetsNeedPositive: 'The limit must be greater than zero.',
   a11yMinus: 'minus',
   a11yPlus: 'plus',
   a11yZero: 'zero',

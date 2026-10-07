@@ -72,6 +72,9 @@ export default function More(): React.JSX.Element {
       <View style={{ marginTop: 8 }}>
         <Btn title={t.moreManageCats} onPress={() => navigation.navigate('Categories')} kind="secondary" icon="label-outline" />
       </View>
+      <View style={{ marginTop: 8 }}>
+        <Btn title={t.budgetsTitle} onPress={() => navigation.navigate('Budgets')} kind="secondary" icon="account-balance-wallet" />
+      </View>
       <Divider />
       <Section>{t.moreLanguage}</Section>
       <View style={{ flexDirection: 'row' }}>

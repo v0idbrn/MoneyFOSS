@@ -20,6 +20,7 @@ import TransactionDetail from './screens/TransactionDetail';
 import AddTransaction from './screens/AddTransaction';
 import Categories from './screens/Categories';
 import ImportCsv from './screens/ImportCsv';
+import Budgets from './screens/Budgets';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -122,6 +123,7 @@ function RootNavigator(): React.JSX.Element {
         <Stack.Screen name="AddTransaction" component={AddTransaction} options={{ title: t.entryTitle, presentation: 'modal' }} />
         <Stack.Screen name="Categories" component={Categories} options={{ title: t.catsTitle }} />
         <Stack.Screen name="ImportCsv" component={ImportCsv} options={{ title: t.importTitle, presentation: 'modal' }} />
+        <Stack.Screen name="Budgets" component={Budgets} options={{ title: t.budgetsTitle }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

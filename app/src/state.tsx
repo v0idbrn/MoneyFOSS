@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { getDb } from './db';
-import { listAccounts, listCategories, listTransactions } from '../../src/persistence/repository.ts';
-import type { Account, Category, Transaction } from '../../src/domain/types.ts';
+import { listAccounts, listBudgets, listCategories, listTransactions } from '../../src/persistence/repository.ts';
+import type { Account, Budget, Category, Transaction } from '../../src/domain/types.ts';
 
 export type LedgerStatus = 'loading' | 'ready' | 'fatal' | 'corrupt';
 
@@ -11,6 +11,7 @@ export interface LedgerState {
   readonly accounts: readonly Account[];
   readonly categories: readonly Category[];
   readonly transactions: readonly Transaction[];
+  readonly budgets: readonly Budget[];
   readonly refresh: () => void;
   readonly retry: () => void;
 }
@@ -21,6 +22,7 @@ const LedgerContext = createContext<LedgerState>({
   accounts: [],
   categories: [],
   transactions: [],
+  budgets: [],
   refresh: () => {},
   retry: () => {},
 });
@@ -57,7 +59,7 @@ export function LedgerProvider({ children }: { children: React.ReactNode }): Rea
 
   const data = useMemo(() => {
     if (status !== 'ready') {
-      return { accounts: [], categories: [], transactions: [] as Transaction[], error: '' };
+      return { accounts: [], categories: [], transactions: [] as Transaction[], budgets: [] as Budget[], error: '' };
     }
     try {
       const db = getDb();
@@ -65,10 +67,11 @@ export function LedgerProvider({ children }: { children: React.ReactNode }): Rea
         accounts: listAccounts(db),
         categories: listCategories(db),
         transactions: listTransactions(db),
+        budgets: listBudgets(db),
         error: '',
       };
     } catch (error) {
-      return { accounts: [], categories: [], transactions: [] as Transaction[], error: messageOf(error) };
+      return { accounts: [], categories: [], transactions: [] as Transaction[], budgets: [] as Budget[], error: messageOf(error) };
     }
   }, [status, version]);
 
@@ -78,6 +81,7 @@ export function LedgerProvider({ children }: { children: React.ReactNode }): Rea
     accounts: data.accounts,
     categories: data.categories,
     transactions: data.transactions,
+    budgets: data.budgets,
     refresh,
     retry,
   };
