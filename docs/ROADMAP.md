@@ -102,13 +102,13 @@
 
 #### P0.5 Data Portability
 - [x] JSON export
-- [x] JSON import
-- [ ] CSV export
-- [ ] CSV import
-- [ ] Versioning
-- [ ] Validation
-- [ ] Preview
-- [ ] Atomic restore
+- [ ] JSON import — sin importador a propósito: el restore entra solo por `.moneybackup` (T-010). Nota: este ítem estaba marcado sin evidencia; se corrige a pendiente.
+- [x] CSV export (Share sheet, cero dependencias)
+- [x] CSV import (`planImport`/`applyImport`: preview → confirm → commit atómico; `tests/import.test.ts`)
+- [ ] Versioning (restore `.moneybackup`, bloqueado en T-010/T-005)
+- [ ] Validation (restore `.moneybackup`, T-010)
+- [ ] Preview (restore `.moneybackup`, T-010 — el preview de import CSV ya existe)
+- [ ] Atomic restore (T-010)
 
 ---
 

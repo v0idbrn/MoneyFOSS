@@ -254,6 +254,16 @@ Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisi
 - **Evidencia:** `assembleRelease` OK (Gradle 9.3.1, JDK Temurin 17.0.20.1): `app-release.apk`, 82.023.112 B, SHA-256 `0BAEE0CB…1552506`, `com.moneyfoss.app` v1.0.0, R8+shrink verificados (`minifyReleaseWithR8`, `mapping.txt`, sin `debuggable`). Manifest final (aapt2): cero permisos peligrosos (INTERNET/storage/alert/vibrate eliminados vía `blockedPermissions`), `allowBackup=false`, solo MainActivity exportada (+ receiver estándar con permiso DUMP), sin deep links. Dex tras R8 conserva `okhttp3`/`expo.modules.fetch` (sin permiso, sin uso). Fuente: HEAD `929b84b`, árbol limpio.
 - **NO evidencia:** firma release (firmado con clave debug `CN=Android Debug`: no distribuible; el keystore release es acción del usuario fuera del repo), tráfico real, runtime en dispositivo. T-019 y T-021 siguen PROVISIONALES sin cambios.
 
+### T-031 — Import CSV: semántica existing-wins (cierre de alcance de Fase 3)
+
+- **Estado:** PROVISIONAL (semántica implementada y testeada en host; UI pendiente de prueba en dispositivo)
+- **Fecha:** 2026-10-07
+- **Contexto:** P-08 (DECIDED) exige pipeline de import con validación, dedup, preview, confirmación y commit atómico; PHASE0 §23 define Fase 3 = Accounts + Transactions UI + import/export CSV/JSON. Quedaba sin fijar la semántica concreta de dedup/conflictos y la creación de cuentas/categorías.
+- **Opciones:** (a) overwrite/merge del id existente; (b) rechazar el archivo completo ante el primer conflicto; (c) existing-wins por transacción — idéntico se omite, distinto conserva lo existente, el resto del archivo importa.
+- **Decisión:** (c), con comparación exacta por `stableStringify(toWire(tx))` (sin fingerprints heurísticos — T-007/T-011 siguen abiertos y este mecanismo no los anticipa). Nunca sobrescribir. Cuentas/categorías nuevas solo desde defs validadas del CSV (`account_type`+`account_name` consistentes; `kind` consistente con la cuenta sistema); `sys:*` jamás se crea; cada grupo pasa por `assertTransaction` (cero reglas de validación nuevas en el import); `applyImport` escribe todo en una transacción única (todo o nada).
+- **Evidencia:** `app/src/lib/import-csv.ts`; `tests/import.test.ts` (round-trip export→DB vacía, idempotencia de re-import, conflicto no sobrescribe, rechazos `unknown-account`/`bad-row`/`mixed-conversion`/`invalid-transaction`/defs inconsistentes, rollback atómico con `FailAfter`, nested transactions con fix raíz en ambos drivers); suite 154/154, typechecks 0. Commits `7604835` (pipeline) y `196d161` (pantalla ImportCsv, preview → confirm).
+- **NO evidencia:** prueba en dispositivo (analizar/preview/confirm/toast); T-019 y T-021 siguen PROVISIONALES sin cambios.
+
 ### T-030 — Cuarto release APK (fix FAB sobre contenido)
 
 - **Estado:** PROVISIONAL (evidencia de artefacto; runtime en dispositivo pendiente)

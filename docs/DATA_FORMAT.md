@@ -1,6 +1,6 @@
 # MoneyFOSS — Data Format
 
-**Estados por sección:** §1–§4 (wire de transacción) = **DECIDED** — implementado en `src/domain/serialize.ts` y testeado. §5 (envelope de backup) = **PROVISIONAL** — depende de T-010 y T-005, ambos **OPEN**. §7 (CSV v1) y §8 (JSON export) = **PROVISIONAL** — implementados y testeados (round-trip export→parse); pueden ajustarse al calibrar el preview de import.
+**Estados por sección:** §1–§4 (wire de transacción) = **DECIDED** — implementado en `src/domain/serialize.ts` y testeado. §5 (envelope de backup) = **PROVISIONAL** — depende de T-010 y T-005, ambos **OPEN**. §7 (CSV v1) y §8 (JSON export) = **PROVISIONAL** — export e import implementados y testeados en host (`export.test.ts` + `import.test.ts`, 154/154); pendiente prueba en dispositivo para cerrar.
 
 ---
 
@@ -122,7 +122,9 @@ Lo que el dominio ya fija y el backup debe contener (orden de restore: primero r
 
 ## 7. CSV de transacciones v1 (export + import)
 
-**Propósito (§13a):** hoja de cálculo y análisis humano, **y** re-importación de lo exportado. **No es formato de restore** — el restore entra solo por `.moneybackup` (T-010). Implementado en `app/src/lib/csv.ts` (codec RFC 4180) + `app/src/lib/export-data.ts` (filas) y testeado (`tests/export.test.ts`).
+**Propósito (§13a):** hoja de cálculo y análisis humano, **y** re-importación de lo exportado. **No es formato de restore** — el restore entra solo por `.moneybackup` (T-010). Implementado en `app/src/lib/csv.ts` (codec RFC 4180) + `app/src/lib/export-data.ts` (filas) y testeado (`tests/export.test.ts`); import en `app/src/lib/import-csv.ts` (`planImport` → preview de usuario → `applyImport`, commit atómico) testeado en `tests/import.test.ts` (round-trip export→import en DB vacía, idempotencia, conflictos, rechazos, rollback).
+
+Semántica de import (T-031): **existing-wins por `tx_id`** — idéntico byte a byte (`stableStringify(toWire())`) = duplicado omitido; distinto = conflicto, se conserva lo existente y **nunca** se sobrescribe. Cuentas/categorías referenciadas se crean solo si faltan, a partir de las definiciones del CSV (validadas: `account_type`+`account_name` consistentes entre filas; `kind` de categoría consistente con la cuenta sistema); `sys:*` jamás se crea. Todo grupo pasa por `assertTransaction` del dominio (sin reglas de validación nuevas en el import). Commit único: todo o nada.
 
 - Una fila por **posting**; los postings de una transacción comparten `tx_id`; `position` es 0-based y ordena los postings.
 - `amount_minor`: **string de entero con signo en minor units** — nunca decimal, nunca float, nunca notación científica (P-07). El exponente de cada moneda vive en la tabla embebida (§ currency) y se exporta también en el JSON (§8).
