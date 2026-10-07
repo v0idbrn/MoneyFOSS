@@ -53,6 +53,8 @@ test('csv codec round-trips hostile cells and rejects malformed input', () => {
   assert.throws(() => parseCsv('x'.repeat(CSV_MAX_INPUT + 1)), (error: unknown) => error instanceof DomainError && error.code === 'CSV_INVALID');
   assert.deepEqual(parseCsv(''), []);
   assert.deepEqual(parseCsv('a,b\r\nc,d\r\n'), [['a', 'b'], ['c', 'd']]);
+  assert.deepEqual(parseCsv('\uFEFFa,b\n'), [['a', 'b']], 'UTF-8 BOM from spreadsheet exports must not corrupt the header');
+  assert.deepEqual(parseCsv('a\uFEFFb\n'), [['a\uFEFFb']], 'BOM only counts at the very start of the input');
 });
 
 test('transactions csv keeps amounts as signed integer minor units and resolves names', () => {

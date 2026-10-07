@@ -16,6 +16,9 @@ export function toCsv(rows: readonly (readonly string[])[]): string {
 }
 
 export function parseCsv(text: string): string[][] {
+  if (text.charCodeAt(0) === 0xfeff) {
+    text = text.slice(1);
+  }
   if (text.length > CSV_MAX_INPUT) {
     throw new DomainError('CSV_INVALID', `CSV input of ${text.length} characters exceeds the ${CSV_MAX_INPUT} byte limit`);
   }
