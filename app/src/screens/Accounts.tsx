@@ -92,10 +92,14 @@ export default function Accounts(): React.JSX.Element {
         {list.map((account) => (
           <Pressable
             key={account.id}
-            style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10 }}
+            style={({ pressed }) => [
+              { flexDirection: 'row', alignItems: 'center', paddingVertical: 10 },
+              pressed ? { opacity: 0.7 } : null,
+            ]}
             onPress={() => navigation.navigate('AccountDetail', { accountId: account.id })}
             accessibilityRole="button"
             accessibilityLabel={`${account.name}, ${balanceLine(account)}`}
+            android_ripple={{ color: 'rgba(255,255,255,0.08)' }}
           >
             <View style={{ flex: 1 }}>
               <Body>{account.name}</Body>
