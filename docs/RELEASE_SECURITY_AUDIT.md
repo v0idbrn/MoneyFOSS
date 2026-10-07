@@ -4,7 +4,7 @@
 
 ## Executive Summary
 
-Release APK real producido localmente (no debug): 82 MB con R8+shrink, **cero permisos peligrosos**, `allowBackup=false`, firmado con clave debug (**no distribuible**). Suite 138/138, typechecks en 0, bundle verificado. Veredicto: **RELEASE CANDIDATE — DEVICE GATES REMAIN**.
+Release APK real producido localmente (no debug): 82 MB con R8+shrink, **cero permisos peligrosos**, `allowBackup=false`, **firmado con keystore de producción** (CN=MoneyFOSS). Suite 138/138, typechecks en 0, bundle verificado. Veredicto: **RELEASE CANDIDATE — DEVICE GATES REMAIN**.
 
 ## Build Evidence (VERIFIED)
 
@@ -15,8 +15,8 @@ Release APK real producido localmente (no debug): 82 MB con R8+shrink, **cero pe
 | Toolchain | Node 24.15.0, npm 12.0.2, Temurin JDK 17.0.20.1, Gradle 9.3.1, build-tools 35.0.0, compileSdk 36, targetSdk 36, minSdk 24, NDK 27.1.12297006, Windows |
 | Comando | `expo prebuild --clean` + `gradlew -p android assembleRelease --offline` |
 | Variante | release (R8 `minifyReleaseWithR8` ejecutado, `mapping.txt` generado, shrinkResources, sin flag `debuggable`) |
-| Firma | **clave DEBUG** (`CN=Android Debug`, SHA-256 `fac61745…b833`) — no existe keystore release; no se inventó ninguna firma |
-| Tamaño / SHA-256 | 82.023.112 B / `0BAEE0CB…1552506` |
+| Firma | **keystore producción** (`CN=MoneyFOSS`, SHA-256 `83389ea5…326c`) — **no debug key** |
+| Tamaño / SHA-256 | 82.023.124 B / `9C938450D1DB81FC6ED63A42B4154258D1F3ADF6CC7CA7B059DB15D6A5EC1297` |
 | Ruta | `app/android/app/build/outputs/apk/release/app-release.apk` (gitignored) |
 | Resultado | `BUILD SUCCESSFUL`, 360 tareas (332 ejecutadas) |
 

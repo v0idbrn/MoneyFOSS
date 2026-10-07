@@ -18,6 +18,7 @@ local.properties
 *.aab
 *.jks
 *.keystore
+key.properties
 *.log
 
 # tool / OS state

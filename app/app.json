@@ -9,6 +9,7 @@
     "newArchEnabled": true,
     "plugins": [
       "./plugins/withAllowBackupFalse.cjs",
+      "./plugins/withReleaseSigning.cjs",
       [
         "expo-build-properties",
         {
