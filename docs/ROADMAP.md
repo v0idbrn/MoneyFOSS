@@ -192,6 +192,7 @@
 6. ~~**Error Handling UI**~~ Done — hints, gate retry
 7. ~~**Sort indicators / loading states de lista**~~ descartado (YAGNI): reads son síncronos, el orden ya es estable; sin evidencia de necesidad
 8. ~~**Import/Export CSV+JSON**~~ Done — Share sheet de export, ImportCsv con preview → confirm → commit atómico (T-031)
+9. **Budgets v1** (Fase 5) — Done en host: schema v2, regla mensual categoría+moneda, medición desde postings, pantalla Budgets con crear/eliminar; T-032 PROVISIONAL (pendiente ratificación de moneda explícita + periodicidad mensual y prueba en dispositivo)
 
 ---
 
@@ -208,4 +209,4 @@
 
 *Last updated: 2026-10-07*
 *Last build: `ae8aae8` — production-signed APK (T-030), 82.029.380 B, SHA-256 `B7C6D34AC3DE52463F4680F26A39C3E68412A830040FA435AE143C2E4CAF805E`*
-*Tests: 154/154 pass | Typecheck: PASS (raíz + app) | Export: OK | APK: 82MB, signed (prod key), R8+shrink*
+*Tests: 157/157 pass | Typecheck: PASS (raíz + app) | Export: OK | APK: 82MB, signed (prod key), R8+shrink*
