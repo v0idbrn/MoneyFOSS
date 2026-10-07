@@ -303,7 +303,7 @@ export function TxRow({
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  screenContent: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.md },
+  screenContent: { padding: spacing.lg, paddingBottom: spacing.xxl + 60, gap: spacing.md },
   h1: { ...type.hero, color: colors.textPrimary, marginBottom: spacing.sm },
   section: { ...type.section, color: colors.textPrimary, marginTop: spacing.md },
   body: { ...type.body, color: colors.textPrimary },
