@@ -46,7 +46,10 @@
 - [x] Transaction Detail (postings, conversion details, delete)
 - [x] Add Transaction (expense/income/transfer/card-purchase/card-payment/convert)
 - [x] Categories (list by kind, CRUD, usage counts)
-- [x] More (About, Currencies, Erase all)
+- [x] More (About, Currencies, Erase all, Export, Import)
+- [x] ImportCsv (analyze → preview → confirm, nada escrito hasta confirmar)
+- [x] Budgets (crear/eliminar límite mensual categoría+moneda, medido desde el ledger)
+- [x] Reports (resumen mensual por moneda + gastos por categoría, solo lectura)
 
 ### Domain & Persistence
 - [x] Currency, Money, Account, Transaction, Posting, Category
@@ -86,14 +89,14 @@
 #### P0.3 UX Polish (Current Sprint)
 - [x] **Home**: snapshot por moneda con cuentas en cero y sin equity, lista de cuentas (tap → detalle, "Mostrar todo" → Accounts), un solo empty state, "Mostrar todo" a Movimientos, FAB con guardia de cuentas en AddTransaction
 - [x] **Accounts**: filas con pressed/ripple, primer formulario sin grupos "(0)", validación local de nombre, rename con toast
-- [ ] **Transactions**: Filter UX polish (sorting indicators only — search/count/clear ya funcionan)
+- [x] **Transactions**: Filter UX polish (sorting indicators descartados YAGNI — search/count/clear ya funcionan)
 - [x] **Transaction Detail**: postings muestran nombres de cuenta (no ids crudos); block de conversión completo
 - [x] **Categories**: two-tap delete armado por categoría, rename con toast, validación local de nombre
 - [x] **Feedback**: success toasts on save/create/delete (in-house, zero deps); toast apila sobre el FAB
 - [x] **ErrorState/rows ES/EN**: `ErrorState`, `FormError` (role=alert) y detalles de fila (transferencia/pago/tasa/comisión) localizados — sin strings hardcodeados en componentes compartidos
 - [x] **Error Handling UI**: hints localizados para listas vacías en AddTransaction (categorías/tarjetas), gate fatal/corrupt con retry real, `getDb()` solo cachea el handle tras init completo
 - [x] **Empty States**: Home sin estados apilados, Accounts sin grupos vacíos, CTA AddTransaction → Accounts cuando no hay cuentas
-- [ ] **Feedback rest**: loading states (reads are sync; only DB-open spinner exists)
+- [x] **Feedback rest**: loading states — descartados (YAGNI: reads síncronos; solo spinner de DB-open, ya implementado)
 
 #### P0.4 Persistence
 - [x] Restart persistence
@@ -148,12 +151,10 @@
 
 | Feature | Reason |
 |---------|--------|
-| Budgets/Goals | Requires P0 solid first |
-| Recurring Transactions | Requires P1 Planning |
-| Reports/Charts | Requires P0 solid |
+| Goals | Modelo OPEN (PHASE0 §9, una línea); pendiente de ratificación del patrón de T-032 antes de diseñar |
+| Recurring Transactions | UX OPEN (no inventar frecuencias/edición) |
+| Charts | T-035 dejó reports v1 sin charts; dibujado propio/lib pendiente de ratificación |
 | Credit Cards | Requires P1 Planning |
-| Recurring/Planning | Requires P1 Planning |
-| Reports/Charts | Requires P0 solid |
 | Desktop | Out of scope for mobile MVP |
 | Sync/Cloud | Out of scope (P-02) |
 | AI/ML | Out of scope |
@@ -193,6 +194,7 @@
 7. ~~**Sort indicators / loading states de lista**~~ descartado (YAGNI): reads son síncronos, el orden ya es estable; sin evidencia de necesidad
 8. ~~**Import/Export CSV+JSON**~~ Done — Share sheet de export, ImportCsv con preview → confirm → commit atómico (T-031)
 9. **Budgets v1** (Fase 5) — Done en host: schema v2, regla mensual categoría+moneda, medición desde postings, pantalla Budgets con crear/eliminar; T-032 PROVISIONAL (pendiente ratificación de moneda explícita + periodicidad mensual y prueba en dispositivo)
+10. ~~**Reports v1** (Fase 6)~~ Done en host — `lib/reports` + pantalla Reports (mes anterior/siguiente, totales ingreso/gasto/neto por moneda, gastos por categoría); T-035 PROVISIONAL (sin charts, sin consolidado FX)
 
 ---
 
@@ -209,4 +211,4 @@
 
 *Last updated: 2026-10-07*
 *Last build: `7d617c4` — production-signed APK (T-033), 82.063.632 B, SHA-256 `6753476F28B19F606A8B57C03642763703459AF6A1FD0D51F8BA8E92573452FC`*
-*Tests: 157/157 pass | Typecheck: PASS (raíz + app) | Export: OK | APK: 82MB, signed (prod key), R8+shrink*
+*Tests: 161/161 pass | Typecheck: PASS (raíz + app) | Export: OK | APK: 82MB, signed (prod key), R8+shrink*

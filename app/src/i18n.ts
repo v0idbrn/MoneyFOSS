@@ -186,6 +186,16 @@ export interface Dict {
   readonly budgetsRemaining: string;
   readonly budgetsPickCategory: string;
   readonly budgetsNeedPositive: string;
+  readonly reportsTitle: string;
+  readonly reportsSubtitle: string;
+  readonly reportsPrev: string;
+  readonly reportsNext: string;
+  readonly reportsIncome: string;
+  readonly reportsExpense: string;
+  readonly reportsNet: string;
+  readonly reportsByCategory: string;
+  readonly reportsEmpty: string;
+  readonly reportsEmptyBody: string;
   readonly a11yMinus: string;
   readonly a11yPlus: string;
   readonly a11yZero: string;
@@ -378,6 +388,16 @@ const es: Dict = {
   budgetsRemaining: 'Restante',
   budgetsPickCategory: 'Elegí una categoría.',
   budgetsNeedPositive: 'El límite debe ser mayor a cero.',
+  reportsTitle: 'Reportes',
+  reportsSubtitle: 'Resumen del mes por moneda. Solo lectura: derivado del ledger.',
+  reportsPrev: 'Mes anterior',
+  reportsNext: 'Mes siguiente',
+  reportsIncome: 'Ingresos',
+  reportsExpense: 'Gastos',
+  reportsNet: 'Neto',
+  reportsByCategory: 'Gastos por categoría',
+  reportsEmpty: 'Sin movimientos categorizados en este mes',
+  reportsEmptyBody: 'Elegí otro mes o registrá un movimiento.',
   a11yMinus: 'menos',
   a11yPlus: 'más',
   a11yZero: 'cero',
@@ -582,6 +602,16 @@ const en: Dict = {
   budgetsRemaining: 'Remaining',
   budgetsPickCategory: 'Pick a category.',
   budgetsNeedPositive: 'The limit must be greater than zero.',
+  reportsTitle: 'Reports',
+  reportsSubtitle: 'Monthly summary per currency. Read-only: derived from the ledger.',
+  reportsPrev: 'Previous month',
+  reportsNext: 'Next month',
+  reportsIncome: 'Income',
+  reportsExpense: 'Expenses',
+  reportsNet: 'Net',
+  reportsByCategory: 'Expenses by category',
+  reportsEmpty: 'No categorized activity in this month',
+  reportsEmptyBody: 'Pick another month or record a transaction.',
   a11yMinus: 'minus',
   a11yPlus: 'plus',
   a11yZero: 'zero',

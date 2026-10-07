@@ -337,6 +337,17 @@ Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisi
 
 ---
 
+### T-035 — Reports v1 (Fase 6): resumen mensual descriptivo, series por moneda
+
+- **Estado:** PROVISIONAL (alcance mínimo recomendado; nada de esto escribe en el ledger y las reglas de agregación vienen ratificadas — falta la ratificación de producto del usuario)
+- **Fecha:** 2026-10-07
+- **Contexto:** PHASE0 §23 lista Fase 6 = "Reports + charts"; §614 (reportes por moneda, iguales los necesitan aparte), §641 (agregados = solo display, derivados del ledger) y §643 (por defecto series por moneda; consolidado transversal solo con tasa declarada por el usuario y etiquetado) fijan las reglas. Budgets (T-032) ya midió el mismo tipo de agregado.
+- **Decisión (v1, PROVISIONAL):** pantalla "Reportes" (desde Más) con selector de mes (anterior/siguiente), por cada moneda: total de ingresos, total de gastos y neto del mes; y lista de gastos por categoría del mes (enteros en minor units, formateados para display). Fuente única: postings `kind='normal'` **con categoría**, agrupados por `currency` del posting; se usa `category.kind` para clasificar (gasto suma `amount`, ingreso suma `-amount`); los refunds de gasto (amount negativo) restan naturalmente. Bridges, conversiones y transferencias sin categoría quedan fuera (no son ingreso/gasto). Cero escrituras, cero dependencias, cero charts en v1.
+- **Fuera de alcance v1 (registrado):** charts/gráficos (dibujado propio o lib → pendiente de ratificación); consolidado transversal de monedas (exige tasa declarada por usuario, §643); export de reportes; drill-down a transacciones desde el reporte; histórico de varios meses en una vista; porcentajes (display entero, §661).
+- **Evidencia:** `app/src/lib/reports.ts` puro con `monthFlowTotals`/`categoryFlowTotals` + `tests/reports.test.ts` (meses, monedas, signos, exclusión de transferencias/bridges, mes inválido falla cerrado).
+
+---
+
 ## Cómo añadir una decisión nueva
 
 ```

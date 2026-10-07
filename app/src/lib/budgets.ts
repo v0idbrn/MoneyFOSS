@@ -3,6 +3,10 @@ import type { Budget, Transaction } from '../../../src/domain/types.ts';
 
 const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
 
+export function isValidMonth(month: string): boolean {
+  return MONTH_RE.test(month);
+}
+
 export interface BudgetProgress {
   readonly budget: Budget;
   readonly spent: bigint;

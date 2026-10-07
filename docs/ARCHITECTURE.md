@@ -51,7 +51,7 @@ El dominio no conoce SQLite, React, ni `Date.now()` (las fechas entran como dato
 
 ## 2c. App (`app/src/`)
 
-Pantallas: Home, Accounts, AccountDetail, Transactions, TransactionDetail, AddTransaction (6 tipos de operación), Categories, ImportCsv (preview de import → confirm → commit atómico), Budgets (límite mensual por categoría+moneda, medido desde el ledger), More. `lib/` pura y testeada (`format`, `describe`, `filters`, `snapshot`, `csv` (codec RFC 4180), `export-data`, `import-csv` (pipeline `planImport`/`applyImport`), `budgets` (medición mensual)); `db.ts` abre expo-sqlite + migra + siembra categorías (el handle se cachea solo tras init completo, para que retry sea honesto); `state.tsx` re-deriva todo en cada `refresh()` (sin caché financiera) y expone `retry` para estados `fatal`/`corrupt`. i18n ES/EN con completitud en compile-time; locale persistido en `schema_meta`.
+Pantallas: Home, Accounts, AccountDetail, Transactions, TransactionDetail, AddTransaction (6 tipos de operación), Categories, ImportCsv (preview de import → confirm → commit atómico), Budgets (límite mensual por categoría+moneda, medido desde el ledger), Reports (resumen mensual por moneda + gastos por categoría, solo lectura), More. `lib/` pura y testeada (`format`, `describe`, `filters`, `snapshot`, `csv` (codec RFC 4180), `export-data`, `import-csv` (pipeline `planImport`/`applyImport`), `budgets` (medición mensual), `reports` (agregados mensuales por moneda/categoría)); `db.ts` abre expo-sqlite + migra + siembra categorías (el handle se cachea solo tras init completo, para que retry sea honesto); `state.tsx` re-deriva todo en cada `refresh()` (sin caché financiera) y expone `retry` para estados `fatal`/`corrupt`. i18n ES/EN con completitud en compile-time; locale persistido en `schema_meta`.
 
 ## 3. Reglas vinculantes (resumen; el texto normativo vive en AGENTS/DECISIONS)
 
@@ -72,7 +72,7 @@ Pantallas: Home, Accounts, AccountDetail, Transactions, TransactionDetail, AddTr
 ## 5. Verificación
 
 ```powershell
-npm test          # node --test "tests/*.test.ts" (157 tests: dominio + persistencia + presentación + import/export + budgets)
+npm test          # node --test "tests/*.test.ts" (161 tests: dominio + persistencia + presentación + import/export + budgets + reports)
 npm run typecheck # tsc --noEmit (strict + erasableSyntaxOnly)
 ```
 
