@@ -6,14 +6,15 @@ import { loadTransaction, saveTransaction } from '../src/persistence/repository.
 import { money } from '../src/domain/money.ts';
 import { expense } from '../src/domain/operations.ts';
 import { TODAY, acct, cat, refs } from './fixtures.ts';
-import { openTestDb, throwsCode } from './db-fixtures.ts';
+import { openTestDb, tableNames, throwsCode } from './db-fixtures.ts';
+import { MIGRATIONS } from '../src/persistence/schema.ts';
 
 test('migrate is idempotent', () => {
   const db = openNodeDb(':memory:');
   try {
-    assert.equal(migrate(db), 1);
-    assert.equal(migrate(db), 1);
-    assert.equal(getSchemaVersion(db), 1);
+    assert.equal(migrate(db), 2);
+    assert.equal(migrate(db), 2);
+    assert.equal(getSchemaVersion(db), 2);
   } finally {
     db.close();
   }
@@ -23,7 +24,7 @@ test('future schema version is refused without touching data', () => {
   const db = openTestDb();
   try {
     db.exec("INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('version', '99')");
-    throwsCode(() => migrate(db), 'SCHEMA_VERSION_MISMATCH', 'newer than supported 1');
+    throwsCode(() => migrate(db), 'SCHEMA_VERSION_MISMATCH', 'newer than supported 2');
     assert.equal(getSchemaVersion(db), 99);
   } finally {
     db.close();
@@ -45,8 +46,9 @@ test('corrupt version values fail closed', () => {
 });
 
 test('failed migration leaves the database at the last good version with data intact', () => {
-  const db = openTestDb();
+  const db = openNodeDb(':memory:');
   try {
+    migrate(db, MIGRATIONS.filter((m) => m.version === 1));
     const tx = expense({ refs, id: 'mig-keep', date: TODAY, account: acct('bank-ars'), amount: money(1000n, 'ARS'), category: cat('food') });
     db.exec("INSERT INTO accounts (id, name, type, currency) VALUES ('bank-ars', 'Bank ARS', 'ASSET', 'ARS')");
     db.exec("INSERT INTO categories (id, name, kind) VALUES ('food', 'Food', 'expense')");
@@ -65,8 +67,9 @@ test('failed migration leaves the database at the last good version with data in
 });
 
 test('additive upgrade path applies cleanly over existing data', () => {
-  const db = openTestDb();
+  const db = openNodeDb(':memory:');
   try {
+    migrate(db, MIGRATIONS.filter((m) => m.version === 1));
     const tx = expense({ refs, id: 'mig-up', date: TODAY, account: acct('bank-ars'), amount: money(1000n, 'ARS'), category: cat('food') });
     db.exec("INSERT INTO accounts (id, name, type, currency) VALUES ('bank-ars', 'Bank ARS', 'ASSET', 'ARS')");
     db.exec("INSERT INTO categories (id, name, kind) VALUES ('food', 'Food', 'expense')");

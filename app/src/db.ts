@@ -36,6 +36,7 @@ export function ensureOpeningAccount(db: Db, currency: string): Account {
 
 export function eraseAllData(db: Db): void {
   db.transaction(() => {
+    db.exec('DELETE FROM budgets');
     db.exec('DELETE FROM postings');
     db.exec('DELETE FROM conversions');
     db.exec('DELETE FROM transactions');

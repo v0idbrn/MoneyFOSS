@@ -3,7 +3,8 @@ import { getCurrency } from '../domain/currency.ts';
 import { assertInt64 } from '../domain/money.ts';
 import { ID_MAX_LENGTH, assertTransaction } from '../domain/validate.ts';
 import type { Db, DbRow } from './db.ts';
-import type { Account, Category, Conversion, LedgerRefs, Posting, Transaction } from '../domain/types.ts';
+import type { Account, Budget, Category, Conversion, LedgerRefs, Posting, Transaction } from '../domain/types.ts';
+import { budgetId } from '../domain/types.ts';
 
 const CANONICAL_INT_RE = /^-?(0|[1-9]\d*)$/;
 const POSITIVE_INT_RE = /^[1-9]\d*$/;
@@ -85,6 +86,30 @@ export function saveCategory(db: Db, category: Category): void {
   db.exec('INSERT INTO categories (id, name, kind) VALUES (?, ?, ?)', [category.id, category.name, category.kind]);
 }
 
+export function saveBudget(db: Db, budget: Budget): void {
+  checkId(budget.id, 'INVALID_BUDGET');
+  if (typeof budget.categoryId !== 'string' || budget.categoryId.length === 0) {
+    throw new DomainError('INVALID_BUDGET', `budget ${JSON.stringify(budget.id)} must reference a non-empty category_id`);
+  }
+  if (db.query('SELECT id FROM categories WHERE id = ?', [budget.categoryId]).length === 0) {
+    throw new DomainError('UNKNOWN_CATEGORY', `budget ${JSON.stringify(budget.id)} references unknown category ${JSON.stringify(budget.categoryId)}`);
+  }
+  getCurrency(budget.currency);
+  if (typeof budget.amountMinor !== 'bigint' || budget.amountMinor <= 0n) {
+    throw new DomainError('INVALID_BUDGET', `budget ${JSON.stringify(budget.id)} amount must be a positive integer of minor units, got ${String(budget.amountMinor)}`);
+  }
+  assertInt64(budget.amountMinor, `budget ${budget.id} amount`);
+  if (budget.id !== budgetId(budget.categoryId, budget.currency)) {
+    throw new DomainError('INVALID_BUDGET', `budget id ${JSON.stringify(budget.id)} must be ${JSON.stringify(budgetId(budget.categoryId, budget.currency))} (one rule per category+currency)`);
+  }
+  db.exec('INSERT OR REPLACE INTO budgets (id, category_id, currency, amount_minor) VALUES (?, ?, ?, ?)', [
+    budget.id,
+    budget.categoryId,
+    budget.currency,
+    budget.amountMinor.toString(),
+  ]);
+}
+
 function mapAccount(row: DbRow): Account {
   const type = rowString(row, 'type', 'accounts');
   if (!ACCOUNT_TYPES.includes(type)) {
@@ -116,6 +141,29 @@ export function listAccounts(db: Db): Account[] {
 
 export function listCategories(db: Db): Category[] {
   return db.query('SELECT id, name, kind FROM categories ORDER BY rowid').map(mapCategory);
+}
+
+function mapBudget(row: DbRow): Budget {
+  const amount = parsePositiveInt(rowString(row, 'amount_minor', 'budgets'), 'budgets.amount_minor');
+  assertInt64(amount, 'budgets.amount_minor');
+  return {
+    id: rowString(row, 'id', 'budgets'),
+    categoryId: rowString(row, 'category_id', 'budgets'),
+    currency: rowString(row, 'currency', 'budgets'),
+    amountMinor: amount,
+  };
+}
+
+export function listBudgets(db: Db): Budget[] {
+  return db.query('SELECT id, category_id, currency, amount_minor FROM budgets ORDER BY rowid').map(mapBudget);
+}
+
+export function deleteBudget(db: Db, id: string): void {
+  const rows = db.query('SELECT id FROM budgets WHERE id = ?', [id]);
+  if (rows.length === 0) {
+    throw new DomainError('UNKNOWN_BUDGET', `budget ${JSON.stringify(id)} not found`);
+  }
+  db.exec('DELETE FROM budgets WHERE id = ?', [id]);
 }
 
 export function loadRefs(db: Db): LedgerRefs {

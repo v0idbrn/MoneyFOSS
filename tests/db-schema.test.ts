@@ -5,14 +5,14 @@ import { getSchemaVersion, migrate } from '../src/persistence/migrate.ts';
 import { SCHEMA_VERSION } from '../src/persistence/schema.ts';
 import { openTestDb, tableNames } from './db-fixtures.ts';
 
-test('fresh database migrates to version 1 with all tables', () => {
+test('fresh database migrates to version 2 with all tables', () => {
   const db = openNodeDb(':memory:');
   try {
     assert.equal(getSchemaVersion(db), 0);
-    assert.equal(migrate(db), 1);
-    assert.equal(getSchemaVersion(db), 1);
-    assert.equal(SCHEMA_VERSION, 1);
-    for (const expected of ['accounts', 'categories', 'conversions', 'postings', 'schema_meta', 'transactions']) {
+    assert.equal(migrate(db), 2);
+    assert.equal(getSchemaVersion(db), 2);
+    assert.equal(SCHEMA_VERSION, 2);
+    for (const expected of ['accounts', 'budgets', 'categories', 'conversions', 'postings', 'schema_meta', 'transactions']) {
       assert.ok(tableNames(db).includes(expected), `missing table ${expected}`);
     }
   } finally {
@@ -79,6 +79,15 @@ test('check constraints reject bad enums and duplicates', () => {
       /FOREIGN KEY/,
       'unknown category_id violates the category foreign key',
     );
+    assert.throws(() => {
+      db.exec("INSERT INTO budgets (id, category_id, currency, amount_minor) VALUES ('b', 'c', 'ARS', '0')");
+    }, 'budget limit must be a positive integer string');
+    assert.throws(() => {
+      db.exec("INSERT INTO budgets (id, category_id, currency, amount_minor) VALUES ('b', 'c', 'ARS', '-10')");
+    }, 'negative budget limit is rejected');
+    assert.throws(() => {
+      db.exec("INSERT INTO budgets (id, category_id, currency, amount_minor) VALUES ('b', 'ghost', 'ARS', '100')");
+    }, /FOREIGN KEY/, 'budget must reference a real category');
   } finally {
     db.close();
   }

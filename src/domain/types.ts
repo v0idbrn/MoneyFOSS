@@ -36,6 +36,17 @@ export interface Category {
   readonly kind: 'income' | 'expense';
 }
 
+export interface Budget {
+  readonly id: string;
+  readonly categoryId: string;
+  readonly currency: string;
+  readonly amountMinor: bigint;
+}
+
+export function budgetId(categoryId: string, currency: string): string {
+  return `${categoryId}@${currency}`;
+}
+
 export interface Posting {
   readonly accountId: string;
   readonly currency: string;
