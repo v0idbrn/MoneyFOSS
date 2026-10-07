@@ -9,7 +9,7 @@ import { useStrings } from '../lang';
 import { describeTransaction } from '../lib/describe';
 import { displayCategoryName } from '../lib/categories';
 import { formatDisplayAmount } from '../lib/format';
-import { Amount, Body, Btn, Divider, ErrorState, H1, Meta, Screen, Section } from '../components';
+import { Amount, Body, Btn, Divider, ErrorState, H1, Meta, Screen, Section, useToast } from '../components';
 import type { RootStackParamList } from '../navtypes';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -20,6 +20,7 @@ export default function TransactionDetail(): React.JSX.Element {
   const route = useRoute<Route>();
   const ledger = useLedger();
   const { t } = useStrings();
+  const showToast = useToast();
   const [showPostings, setShowPostings] = useState(false);
   const [armed, setArmed] = useState(false);
   const [error, setError] = useState('');
@@ -54,6 +55,7 @@ export default function TransactionDetail(): React.JSX.Element {
     try {
       deleteTransaction(getDb(), current.id);
       ledger.refresh();
+      showToast(t.toastDeleted, 'success');
       navigation.goBack();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

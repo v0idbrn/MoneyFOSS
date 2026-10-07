@@ -5,11 +5,12 @@ import { getDb, newTxId } from '../db';
 import { useLedger } from '../state';
 import { useStrings } from '../lang';
 import { displayCategoryName } from '../lib/categories';
-import { Body, Btn, Chip, EmptyState, Field, H1, Meta, Screen, Section } from '../components';
+import { Body, Btn, Chip, EmptyState, Field, H1, Meta, Screen, Section, useToast } from '../components';
 
 export default function Categories(): React.JSX.Element {
   const ledger = useLedger();
   const { t } = useStrings();
+  const showToast = useToast();
   const [name, setName] = useState('');
   const [kind, setKind] = useState<'expense' | 'income'>('expense');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -34,6 +35,7 @@ export default function Categories(): React.JSX.Element {
       setName('');
       setError('');
       ledger.refresh();
+      showToast(t.toastCreated, 'success');
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -60,6 +62,7 @@ export default function Categories(): React.JSX.Element {
       deleteCategory(getDb(), id);
       setError('');
       ledger.refresh();
+      showToast(t.toastDeleted, 'success');
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }

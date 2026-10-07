@@ -9,7 +9,7 @@ import { NavigationBar } from 'expo-navigation-bar';
 import { LedgerProvider, useLedger } from './state';
 import { LangProvider, useStrings } from './lang';
 import { colors } from './theme';
-import { ErrorState, Screen } from './components';
+import { ErrorState, Screen, ToastProvider } from './components';
 import type { RootStackParamList, TabParamList } from './navtypes';
 import Home from './screens/Home';
 import Accounts from './screens/Accounts';
@@ -129,9 +129,11 @@ export default function App(): React.JSX.Element {
   return (
     <LedgerProvider>
       <LangProvider>
-        <StatusBar style="light" />
-        <NavigationBar style="dark" />
-        <RootNavigator />
+        <ToastProvider>
+          <StatusBar style="light" />
+          <NavigationBar style="dark" />
+          <RootNavigator />
+        </ToastProvider>
       </LangProvider>
     </LedgerProvider>
   );

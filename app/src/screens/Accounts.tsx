@@ -13,7 +13,7 @@ import { useLedger } from '../state';
 import { useStrings } from '../lang';
 import { formatDisplayAmount } from '../lib/format';
 import { normalizeAmountInput } from '../lib/format';
-import { Body, Btn, Chip, EmptyState, Field, H1, Meta, Screen, Section } from '../components';
+import { Body, Btn, Chip, EmptyState, Field, H1, Meta, Screen, Section, useToast } from '../components';
 import { colors } from '../theme';
 import type { RootStackParamList } from '../navtypes';
 import type { Account } from '../../../src/domain/types.ts';
@@ -24,6 +24,7 @@ export default function Accounts(): React.JSX.Element {
   const ledger = useLedger();
   const navigation = useNavigation<Nav>();
   const { t } = useStrings();
+  const showToast = useToast();
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [kind, setKind] = useState<'ASSET' | 'LIABILITY'>('ASSET');
@@ -72,6 +73,7 @@ export default function Accounts(): React.JSX.Element {
       setError('');
       setShowForm(false);
       ledger.refresh();
+      showToast(t.toastCreated, 'success');
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }

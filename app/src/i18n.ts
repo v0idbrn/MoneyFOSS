@@ -153,6 +153,9 @@ export interface Dict {
   readonly a11yMinus: string;
   readonly a11yPlus: string;
   readonly a11yZero: string;
+  readonly toastSaved: string;
+  readonly toastDeleted: string;
+  readonly toastCreated: string;
   readonly seedCategoryNames: Record<SeedCategoryId, string>;
 }
 
@@ -299,6 +302,9 @@ const es: Dict = {
   a11yMinus: 'menos',
   a11yPlus: 'más',
   a11yZero: 'cero',
+  toastSaved: 'Movimiento guardado',
+  toastDeleted: 'Eliminado',
+  toastCreated: 'Creado',
   seedCategoryNames: {
     'cat:food': 'Comida',
     'cat:transport': 'Transporte',
@@ -457,6 +463,9 @@ const en: Dict = {
   a11yMinus: 'minus',
   a11yPlus: 'plus',
   a11yZero: 'zero',
+  toastSaved: 'Transaction saved',
+  toastDeleted: 'Deleted',
+  toastCreated: 'Created',
   seedCategoryNames: {
     'cat:food': 'Food',
     'cat:transport': 'Transport',

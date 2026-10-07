@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createContext, useCallback, useContext, useState } from 'react';
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, radius, spacing, type } from './theme';
@@ -8,6 +8,41 @@ import type { Dict } from './i18n';
 import type { Account, Category, Transaction } from '../../src/domain/types.ts';
 
 export type IconName = React.ComponentProps<typeof MaterialIcons>['name'];
+
+export interface Toast {
+  readonly id: string;
+  readonly message: string;
+  readonly kind: 'success' | 'error';
+}
+
+const ToastContext = createContext<(message: string, kind: Toast['kind']) => void>(() => {});
+
+export function useToast(): (message: string, kind: Toast['kind']) => void {
+  return useContext(ToastContext);
+}
+
+export function ToastProvider({ children }: { children: React.ReactNode }): React.JSX.Element {
+  const [toasts, setToasts] = useState<readonly Toast[]>([]);
+  const show = useCallback((message: string, kind: Toast['kind']) => {
+    const id = `${Date.now().toString(36)}-${Math.floor(Math.random() * 2176782336).toString(36)}`;
+    setToasts((prev) => [...prev, { id, message, kind }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3200);
+  }, []);
+  return (
+    <ToastContext.Provider value={show}>
+      {children}
+      <View style={styles.toastContainer} pointerEvents="box-none">
+        {toasts.map((toast) => (
+          <View key={toast.id} style={[styles.toast, toast.kind === 'error' ? styles.toastError : styles.toastSuccess]}>
+            <Text style={styles.toastText}>{toast.message}</Text>
+          </View>
+        ))}
+      </View>
+    </ToastContext.Provider>
+  );
+}
 
 export function Screen({ children }: { children: React.ReactNode }): React.JSX.Element {
   return (
@@ -349,4 +384,20 @@ const styles = StyleSheet.create({
   rowTitle: { ...type.section, color: colors.textPrimary },
   rowDetail: { ...type.meta, color: colors.textSecondary },
   rowAmount: { ...type.amount, color: colors.textPrimary, fontVariant: ['tabular-nums'] },
+  toastContainer: {
+    position: 'absolute',
+    bottom: spacing.xxl,
+    left: spacing.lg,
+    right: spacing.lg,
+    gap: spacing.sm,
+  },
+  toast: {
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    elevation: 4,
+  },
+  toastSuccess: { backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.highlight },
+  toastError: { backgroundColor: colors.surfaceElevated, borderWidth: 1, borderColor: colors.danger },
+  toastText: { ...type.body, color: colors.textPrimary, textAlign: 'center' },
 });

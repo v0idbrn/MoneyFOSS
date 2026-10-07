@@ -12,7 +12,7 @@ import { useLedger } from '../state';
 import { useStrings } from '../lang';
 import { normalizeAmountInput } from '../lib/format';
 import { displayCategoryName } from '../lib/categories';
-import { Btn, Chip, ErrorState, Field, H1, Meta, Screen } from '../components';
+import { Btn, Chip, ErrorState, Field, H1, Meta, Screen, useToast } from '../components';
 import type { EntryKind, RootStackParamList } from '../navtypes';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -25,6 +25,7 @@ export default function AddTransaction(): React.JSX.Element {
   const route = useRoute<Route>();
   const ledger = useLedger();
   const { t } = useStrings();
+  const showToast = useToast();
 
   const [kind, setKind] = useState<EntryKind>(route.params?.kind ?? 'expense');
   const [amount, setAmount] = useState('');
@@ -176,6 +177,7 @@ export default function AddTransaction(): React.JSX.Element {
       const tx = buildTx();
       saveTransaction(getDb(), tx);
       ledger.refresh();
+      showToast(t.toastSaved, 'success');
       navigation.goBack();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

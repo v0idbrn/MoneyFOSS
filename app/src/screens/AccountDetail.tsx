@@ -8,7 +8,7 @@ import { getDb } from '../db';
 import { useLedger } from '../state';
 import { useStrings } from '../lang';
 import { sortNewestFirst } from '../lib/filters';
-import { Amount, Body, Btn, ErrorState, Field, H1, Meta, Screen, Section, TxRow } from '../components';
+import { Amount, Body, Btn, ErrorState, Field, H1, Meta, Screen, Section, TxRow, useToast } from '../components';
 import type { RootStackParamList } from '../navtypes';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -19,6 +19,7 @@ export default function AccountDetail(): React.JSX.Element {
   const route = useRoute<Route>();
   const ledger = useLedger();
   const { t } = useStrings();
+  const showToast = useToast();
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState('');
   const [armed, setArmed] = useState(false);
@@ -69,6 +70,7 @@ export default function AccountDetail(): React.JSX.Element {
     }
     try {
       deleteAccount(getDb(), current.id);
+      showToast(t.toastDeleted, 'success');
       navigation.goBack();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
