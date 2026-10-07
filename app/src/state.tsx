@@ -12,6 +12,7 @@ export interface LedgerState {
   readonly categories: readonly Category[];
   readonly transactions: readonly Transaction[];
   readonly refresh: () => void;
+  readonly retry: () => void;
 }
 
 const LedgerContext = createContext<LedgerState>({
@@ -21,6 +22,7 @@ const LedgerContext = createContext<LedgerState>({
   categories: [],
   transactions: [],
   refresh: () => {},
+  retry: () => {},
 });
 
 function messageOf(error: unknown): string {
@@ -31,6 +33,7 @@ export function LedgerProvider({ children }: { children: React.ReactNode }): Rea
   const [status, setStatus] = useState<LedgerStatus>('loading');
   const [message, setMessage] = useState('');
   const [version, setVersion] = useState(0);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     try {
@@ -40,10 +43,16 @@ export function LedgerProvider({ children }: { children: React.ReactNode }): Rea
       setStatus('fatal');
       setMessage(messageOf(error));
     }
-  }, []);
+  }, [attempt]);
 
   const refresh = useCallback(() => {
     setVersion((v) => v + 1);
+  }, []);
+
+  const retry = useCallback(() => {
+    setStatus('loading');
+    setMessage('');
+    setAttempt((a) => a + 1);
   }, []);
 
   const data = useMemo(() => {
@@ -70,6 +79,7 @@ export function LedgerProvider({ children }: { children: React.ReactNode }): Rea
     categories: data.categories,
     transactions: data.transactions,
     refresh,
+    retry,
   };
 
   return <LedgerContext.Provider value={value}>{children}</LedgerContext.Provider>;

@@ -120,6 +120,8 @@ export interface Dict {
   readonly needIncomeCat: string;
   readonly needAmount: string;
   readonly needRate: string;
+  readonly entryNoCategories: string;
+  readonly entryNoLiability: string;
   readonly cardNeedsLiability: string;
   readonly catsTitle: string;
   readonly catsSubtitle: string;
@@ -278,6 +280,8 @@ const es: Dict = {
   needIncomeCat: 'Elegí una categoría de ingreso.',
   needAmount: 'Ingresá un monto.',
   needRate: 'Ingresá la tasa de cambio.',
+  entryNoCategories: 'No hay categorías de este tipo. Creá una en Más → Categorías.',
+  entryNoLiability: 'No hay cuentas de tarjeta. Creá una en Cuentas.',
   cardNeedsLiability: 'La compra con tarjeta necesita una cuenta de pasivo (tarjeta).',
   catsTitle: 'Categorías',
   catsSubtitle: 'Las categorías viven en los registros de ingreso y gasto, nunca en transferencias ni conversiones.',
@@ -448,6 +452,8 @@ const en: Dict = {
   needIncomeCat: 'Choose an income category.',
   needAmount: 'Enter an amount.',
   needRate: 'Enter the exchange rate.',
+  entryNoCategories: 'No categories of this type yet. Create one in More → Categories.',
+  entryNoLiability: 'No card accounts yet. Create one in Accounts.',
   cardNeedsLiability: 'A card purchase needs a liability (card) account.',
   catsTitle: 'Categories',
   catsSubtitle: 'Categories live on income and expense records — never on transfers or conversions.',

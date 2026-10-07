@@ -43,7 +43,7 @@ function Gate({ children }: { children: React.ReactNode }): React.JSX.Element {
   if (ledger.status === 'fatal' || ledger.status === 'corrupt') {
     return (
       <Screen>
-        <ErrorState message={ledger.message} />
+        <ErrorState message={ledger.message} onRetry={ledger.retry} />
       </Screen>
     );
   }

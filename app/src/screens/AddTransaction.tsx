@@ -238,6 +238,7 @@ export default function AddTransaction(): React.JSX.Element {
         <>
           <Meta>{t.entryAccount}</Meta>
           {accountChips(kind === 'card-purchase' ? liabilities : spendable, accountId, setAccountId)}
+          {kind === 'card-purchase' && liabilities.length === 0 ? <Meta>{t.entryNoLiability}</Meta> : null}
         </>
       )}
       {(kind === 'transfer' || kind === 'card-payment' || kind === 'convert') && (
@@ -246,6 +247,7 @@ export default function AddTransaction(): React.JSX.Element {
           {accountChips(spendable, accountId, setAccountId)}
           <Meta>{t.entryTo}</Meta>
           {accountChips(kind === 'card-payment' ? liabilities : spendable, toAccountId, setToAccountId)}
+          {kind === 'card-payment' && liabilities.length === 0 ? <Meta>{t.entryNoLiability}</Meta> : null}
         </>
       )}
 
@@ -284,12 +286,14 @@ export default function AddTransaction(): React.JSX.Element {
         <>
           <Meta>{t.entryCategory}</Meta>
           {categoryChips(expenseCats, categoryId, setCategoryId)}
+          {expenseCats.length === 0 ? <Meta>{t.entryNoCategories}</Meta> : null}
         </>
       )}
       {kind === 'income' && (
         <>
           <Meta>{t.entryCategory}</Meta>
           {categoryChips(incomeCats, categoryId, setCategoryId)}
+          {incomeCats.length === 0 ? <Meta>{t.entryNoCategories}</Meta> : null}
         </>
       )}
 
@@ -323,6 +327,7 @@ export default function AddTransaction(): React.JSX.Element {
           </View>
           <Meta>{t.entryFeeCategory}</Meta>
           {categoryChips(expenseCats, feeCategoryId, setFeeCategoryId)}
+          {expenseCats.length === 0 ? <Meta>{t.entryNoCategories}</Meta> : null}
         </>
       )}
 

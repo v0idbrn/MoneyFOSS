@@ -11,13 +11,14 @@ let db: Db | null = null;
 
 export function getDb(): Db {
   if (db === null) {
-    db = openExpoDb('moneyfoss.db');
-    migrate(db);
-    if (listCategories(db).length === 0) {
+    const opened = openExpoDb('moneyfoss.db');
+    migrate(opened);
+    if (listCategories(opened).length === 0) {
       for (const category of DEFAULT_CATEGORIES) {
-        saveCategory(db, category);
+        saveCategory(opened, category);
       }
     }
+    db = opened;
   }
   return db;
 }

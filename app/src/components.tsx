@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
   rowAmount: { ...type.amount, color: colors.textPrimary, fontVariant: ['tabular-nums'] },
   toastContainer: {
     position: 'absolute',
-    bottom: spacing.xxl,
+    bottom: 88,
     left: spacing.lg,
     right: spacing.lg,
     gap: spacing.sm,
