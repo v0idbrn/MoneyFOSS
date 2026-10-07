@@ -51,7 +51,7 @@ El dominio no conoce SQLite, React, ni `Date.now()` (las fechas entran como dato
 
 ## 2c. App (`app/src/`)
 
-Pantallas: Home, Accounts, AccountDetail, Transactions, TransactionDetail, AddTransaction (6 tipos de operación), Categories, More. `lib/` pura y testeada (`format`, `describe`, `filters`); `db.ts` abre expo-sqlite + migra + siembra categorías; `state.tsx` re-deriva todo en cada `refresh()` (sin caché financiera). i18n ES/EN con completitud en compile-time; locale persistido en `schema_meta`.
+Pantallas: Home, Accounts, AccountDetail, Transactions, TransactionDetail, AddTransaction (6 tipos de operación), Categories, More. `lib/` pura y testeada (`format`, `describe`, `filters`, `snapshot`); `db.ts` abre expo-sqlite + migra + siembra categorías (el handle se cachea solo tras init completo, para que retry sea honesto); `state.tsx` re-deriva todo en cada `refresh()` (sin caché financiera) y expone `retry` para estados `fatal`/`corrupt`. i18n ES/EN con completitud en compile-time; locale persistido en `schema_meta`.
 
 ## 3. Reglas vinculantes (resumen; el texto normativo vive en AGENTS/DECISIONS)
 
@@ -72,7 +72,7 @@ Pantallas: Home, Accounts, AccountDetail, Transactions, TransactionDetail, AddTr
 ## 5. Verificación
 
 ```powershell
-npm test          # node --test "tests/*.test.ts" (138 tests: dominio + persistencia + presentación)
+npm test          # node --test "tests/*.test.ts" (140 tests: dominio + persistencia + presentación)
 npm run typecheck # tsc --noEmit (strict + erasableSyntaxOnly)
 ```
 

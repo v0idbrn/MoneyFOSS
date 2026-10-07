@@ -254,6 +254,15 @@ Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisi
 - **Evidencia:** `assembleRelease` OK (Gradle 9.3.1, JDK Temurin 17.0.20.1): `app-release.apk`, 82.023.112 B, SHA-256 `0BAEE0CB…1552506`, `com.moneyfoss.app` v1.0.0, R8+shrink verificados (`minifyReleaseWithR8`, `mapping.txt`, sin `debuggable`). Manifest final (aapt2): cero permisos peligrosos (INTERNET/storage/alert/vibrate eliminados vía `blockedPermissions`), `allowBackup=false`, solo MainActivity exportada (+ receiver estándar con permiso DUMP), sin deep links. Dex tras R8 conserva `okhttp3`/`expo.modules.fetch` (sin permiso, sin uso). Fuente: HEAD `929b84b`, árbol limpio.
 - **NO evidencia:** firma release (firmado con clave debug `CN=Android Debug`: no distribuible; el keystore release es acción del usuario fuera del repo), tráfico real, runtime en dispositivo. T-019 y T-021 siguen PROVISIONALES sin cambios.
 
+### T-029 — Tercer release APK (P0 UX polish: Home/Accounts/errores, suite 140)
+
+- **Estado:** PROVISIONAL (evidencia de artefacto; runtime en dispositivo pendiente)
+- **Fecha:** 2026-10-07
+- **SUPERSEDE (artefacto):** el APK de T-028 como referencia vigente; la evidencia de T-028 se conserva como historial.
+- **Alcance del código desde T-028:** 5 commits (`f5229fd`, `854f79b`, `bcf16ae`, `a293c65`, `4279e79`) — snapshot de Home por moneda con cuentas en cero incluidas y equity excluido (`lib/snapshot.ts`, totales vía `currencyTotals` del dominio), lista de cuentas en Home con navegación, `FormError` localizado con `role="alert"` para errores de acción/validación, hints localizados para listas vacías en AddTransaction, gate fatal/corrupt con retry real (`getDb()` solo cachea el handle tras init completo), two-tap delete armado por categoría, renames con toast, conteo "N de M" honesto sobre el conjunto filtrado en Transactions, detalles de fila (transferencia/pago/tasa) ES/EN.
+- **Evidencia:** `assembleRelease` OK (online; el bundle Metro se reconstruyó: `createBundleReleaseJsAndAssets` ejecutado): `app-release.apk`, 82.029.376 B, SHA-256 `A7AA1491…315BE5`, `com.moneyfoss.app` v1.0.0 (versionCode 1), R8+shrink (`minifyReleaseWithR8`, `optimizeReleaseResources`), sin `debuggable`, `allowBackup=false`, firmado producción (`CN=MoneyFOSS`, cert `83389ea5…326c` — no debug). Manifest final (aapt2): un único `uses-permission` propio (DYNAMIC_RECEIVER); sin INTERNET/storage/alert/vibrate/network-state; MainActivity exportada (+ receiver estándar con permiso DUMP); sin deep links hacia la app. Fuente: HEAD `4279e79` (cambios posteriores solo documentales, no afectan el bundle); suite 140/140 + typechecks en 0 + `expo export` OK sobre ese código.
+- **NO evidencia:** tráfico real, runtime en dispositivo. T-019 y T-021 siguen PROVISIONALES sin cambios.
+
 ### T-028 — Segundo release APK (post-toasts, post-permisos, firmado producción)
 
 - **Estado:** PROVISIONAL (evidencia de artefacto; runtime en dispositivo pendiente)

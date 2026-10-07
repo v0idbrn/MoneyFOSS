@@ -67,12 +67,13 @@
 - [x] accounts, transactions, income, expense, transfers, adjustments
 - [x] categories, subcategories, notes, dates
 - [x] multicurrency correctness, conversion correctness
-- [x] **UX Polish - Home**: per-currency snapshot (todos los currencies visibles, cuentas en cero incluidas, equity excluido), empty states sin apilar, "Mostrar todo" a Movimientos, detail ES/EN en filas
-- [ ] **UX Polish - Accounts**: Balance formatting, visual hierarchy, edit flow
-- [ ] **UX Polish - Transactions**: Filtering UX, sorting, search
-- [ ] **UX Polish - Transaction Detail**: Postings display, conversion display
-- [ ] **UX Polish - Accounts**: Balance display, edit flow, delete confirmation
-- [ ] **UX Polish - Categories**: Hierarchy, usage counts, empty states
+- [x] **UX Polish - Home**: snapshot por moneda (cuentas en cero incluidas, equity excluido), lista de cuentas con saldo, empty states sin apilar, "Mostrar todo" a Movimientos, detail ES/EN en filas
+- [x] **UX Polish - Accounts**: pressed/ripple, first-run form sin grupos "(0)", validación de nombre local, rename con toast
+- [x] **UX Polish - Transactions**: conteo "N de M" honesto sobre el conjunto filtrado
+- [ ] **UX Polish - Transactions (resto)**: sorting indicators
+- [x] **UX Polish - Transaction Detail**: postings con nombres de cuenta, block de conversión completo
+- [x] **UX Polish - Categories**: two-tap delete armado, rename con toast, validación de nombre local
+- [ ] **UX Polish - Cross-flow (resto)**: loading states de lista (reads sync; solo spinner de DB-open existe)
 
 #### P0.2 Ledger Integrity
 - [x] Double-entry invariants
@@ -82,13 +83,15 @@
 - [x] Deterministic calculations
 
 #### P0.3 UX Polish (Current Sprint)
-- [x] **Home**: snapshot por moneda con cuentas en cero y sin equity, un solo empty state, "Mostrar todo" a Movimientos, FAB con guardia de cuentas en AddTransaction
-- [ ] **Accounts**: Visual hierarchy, balance display, edit flow polish
-- [ ] **Transactions**: Filter UX, empty states, sorting indicators
-- [ ] **Transaction Detail**: Better postings display, conversion breakdown
-- [ ] **Categories**: Hierarchy support, usage counts, merge/delete safety
-- [x] **Feedback**: success toasts on save/create/delete (in-house, zero deps; errors stay inline)
-- [x] **ErrorState/rows ES/EN**: `ErrorState` y detalles de fila (transferencia/pago/tasa/comisión) localizados vía `Dict` — sin strings hardcodeados en componentes compartidos
+- [x] **Home**: snapshot por moneda con cuentas en cero y sin equity, lista de cuentas (tap → detalle, "Mostrar todo" → Accounts), un solo empty state, "Mostrar todo" a Movimientos, FAB con guardia de cuentas en AddTransaction
+- [x] **Accounts**: filas con pressed/ripple, primer formulario sin grupos "(0)", validación local de nombre, rename con toast
+- [ ] **Transactions**: Filter UX polish (sorting indicators only — search/count/clear ya funcionan)
+- [x] **Transaction Detail**: postings muestran nombres de cuenta (no ids crudos); block de conversión completo
+- [x] **Categories**: two-tap delete armado por categoría, rename con toast, validación local de nombre
+- [x] **Feedback**: success toasts on save/create/delete (in-house, zero deps); toast apila sobre el FAB
+- [x] **ErrorState/rows ES/EN**: `ErrorState`, `FormError` (role=alert) y detalles de fila (transferencia/pago/tasa/comisión) localizados — sin strings hardcodeados en componentes compartidos
+- [x] **Error Handling UI**: hints localizados para listas vacías en AddTransaction (categorías/tarjetas), gate fatal/corrupt con retry real, `getDb()` solo cachea el handle tras init completo
+- [x] **Empty States**: Home sin estados apilados, Accounts sin grupos vacíos, CTA AddTransaction → Accounts cuando no hay cuentas
 - [ ] **Feedback rest**: loading states (reads are sync; only DB-open spinner exists)
 
 #### P0.4 Persistence
@@ -116,12 +119,12 @@
 | Priority | Feature | Status | Effort | Risk |
 |----------|---------|--------|--------|------|
 | 1 | **Home UX Polish** | Done (T-029 tree) | S | Low |
-| 2 | **Accounts UX Polish** | Ready | M | Low |
-| 3 | **Transaction Detail Polish** | Ready | M | Low |
-| 4 | **Categories CRUD Polish** | Ready | S | Low |
-| 5 | **Feedback System (toasts/alerts)** | Ready | M | Low |
-| 6 | **Error Handling UI** | Ready | M | Low |
-| 7 | **Empty States** | Ready | S | Low |
+| 2 | **Accounts UX Polish** | Done (T-029 tree) | M | Low |
+| 3 | **Transaction Detail Polish** | Done (postings + conversion) | M | Low |
+| 4 | **Categories CRUD Polish** | Done (two-tap delete, rename toast) | S | Low |
+| 5 | **Feedback System (toasts/alerts)** | Done | M | Low |
+| 6 | **Error Handling UI** | Done (FormError, hints, gate retry) | M | Low |
+| 7 | **Empty States** | Done | S | Low |
 
 ---
 
@@ -180,12 +183,13 @@
 
 ### This Week (Vertical Slices)
 
-1. ~~**Home UX Polish**~~ Done — snapshot, empty states, "Mostrar todo", ES/EN de filas
-2. **Accounts Screen** - Visual hierarchy, balance display, edit flow
-3. **Transaction Detail** - Postings display, conversion breakdown
-4. **Categories** - Hierarchy, usage counts, merge safety
-5. **Feedback System** - Toasts, alerts, loading states
-6. **Error Handling UI** - User-friendly messages
+1. ~~**Home UX Polish**~~ Done — snapshot, cuentas, empty states, "Mostrar todo", ES/EN de filas
+2. ~~**Accounts Screen**~~ Done — pressed feedback, first-run form, validación local
+3. ~~**Transaction Detail**~~ Done — postings con nombres, conversión completa
+4. ~~**Categories**~~ Done — two-tap delete, rename toast
+5. ~~**Feedback System**~~ Done — toasts + FormError
+6. ~~**Error Handling UI**~~ Done — hints, gate retry
+7. **Transactions sort indicators / loading states de lista** — pendientes menores P0
 
 ---
 
@@ -194,12 +198,12 @@
 - **T-019** (offline runtime) and **T-021** (expo-sqlite runtime) remain PROVISIONAL pending physical device testing
 - **T-004/T-005/T-010** remain OPEN pending threat model and KDF decisions
 - **T-009** License remains PROVISIONAL (GPL-3.0-or-later provisional)
-- Production APK `c3311f1` is the `LAST KNOWN GOOD PRODUCTION APK`
+- Production APK de T-029 (SHA `A7AA1491…315BE5`, fuente `4279e79`) es el `LAST KNOWN GOOD PRODUCTION APK` — ver DECISIONS T-029 / RELEASE_SECURITY_AUDIT
 - DO NOT re-verify device gates until physical device is available
 - Focus development on P0 UX Polish before expanding features
 
 ---
 
 *Last updated: 2026-10-07*
-*Last build: `c3311f1` — production-signed APK, 82MB, SHA-256 `9C938450D1DB81FC6ED63A42B4154258D1F3ADF6CC7CA7B059DB15D6A5EC1297`*
-*Tests: 138/138 pass | Typecheck: PASS | Export: OK | APK: 82MB, signed (prod key), R8+shrink*
+*Last build: `4279e79` — production-signed APK (T-029), 82.029.376 B, SHA-256 `A7AA149179084E0C2616F7CEFBF6F1445737212AE2D7DFBAD230B2A1D2315BE5`*
+*Tests: 140/140 pass | Typecheck: PASS (raíz + app) | Export: OK | APK: 82MB, signed (prod key), R8+shrink*

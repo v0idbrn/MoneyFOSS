@@ -1,10 +1,10 @@
 # MoneyFOSS — Release Security Audit
 
-**Fecha:** 2026-10-07 · **Fuente:** HEAD `d98a667` (árbol limpio; el APK se compiló de este árbol exacto).
+**Fecha:** 2026-10-07 · **Fuente:** HEAD `4279e79` (código exacto del bundle; cambios posteriores solo documentales).
 
 ## Executive Summary
 
-Release APK real producido localmente (no debug): 82 MB con R8+shrink, **cero permisos peligrosos**, `allowBackup=false`, **firmado con keystore de producción** (CN=MoneyFOSS). Suite 138/138, typechecks en 0, bundle verificado. Veredicto: **RELEASE CANDIDATE — DEVICE GATES REMAIN**.
+Release APK real producido localmente (no debug): 82 MB con R8+shrink, **cero permisos peligrosos**, `allowBackup=false`, **firmado con keystore de producción** (CN=MoneyFOSS). Suite 140/140, typechecks en 0, bundle verificado. Veredicto: **RELEASE CANDIDATE — DEVICE GATES REMAIN**.
 
 ## Build Evidence (VERIFIED)
 
@@ -16,23 +16,24 @@ Release APK real producido localmente (no debug): 82 MB con R8+shrink, **cero pe
 | Comando | `expo prebuild --clean` + `gradlew -p android assembleRelease --max-workers=2` (online; `--offline` cuelga configure en este entorno: requiere red para resolución) |
 | Variante | release (R8 `minifyReleaseWithR8` ejecutado, `mapping.txt` generado, shrinkResources, sin flag `debuggable`) |
 | Firma | **keystore producción** (`CN=MoneyFOSS`, SHA-256 `83389ea5…326c`) — **no debug key** |
-| Tamaño / SHA-256 | 82.025.156 B / `38EAEC6261434A6DE4FFC2136F7DB3C30C72BC8A58A8F85621946F721312145F` |
+| Tamaño / SHA-256 | 82.029.376 B / `A7AA149179084E0C2616F7CEFBF6F1445737212AE2D7DFBAD230B2A1D2315BE5` |
 | Ruta | `app/android/app/build/outputs/apk/release/app-release.apk` (gitignored) |
-| Resultado | `BUILD SUCCESSFUL`, 360 tareas (332 ejecutadas) |
+| Resultado | `BUILD SUCCESSFUL`, 360 tareas; bundle Metro reconstruido (`createBundleReleaseJsAndAssets`) |
 
 ## Final APK Evidence
 
-Ver §Build Evidence. Este artefacto (SHA `38EAEC62…211312145F`, fuente HEAD `d98a667`) supera al APK de T-027 para toda conclusión de release; no mezclarlos. Incluye los cambios desde entonces: toasts de feedback, categorías semilla localizadas, `blockedPermissions` extendido a 5 permisos.
+Ver §Build Evidence. Este artefacto (SHA `A7AA1491…315BE5`, fuente HEAD `4279e79`) supera al APK de T-028 para toda conclusión de release; no mezclarlos. Incluye los cambios desde entonces: P0 UX polish (snapshot/lista de Home, `FormError` localizado con retry en el gate, hints de listas vacías, two-tap delete en categorías, feedback en renames, conteos honestos). T-028 queda como historial.
 
 ## CURRENT RELEASE ARTIFACT
 
 - version: 1.0.0 · versionCode: 1 · `com.moneyfoss.app`
 - APK: `app/android/app/build/outputs/apk/release/app-release.apk` (gitignored)
-- SHA-256: `38EAEC6261434A6DE4FFC2136F7DB3C30C72BC8A58A8F85621946F721312145F`
-- size: 82.025.156 B · firmado producción (`CN=MoneyFOSS`, cert SHA-256 `83389ea5…326c`)
+- SHA-256: `A7AA149179084E0C2616F7CEFBF6F1445737212AE2D7DFBAD230B2A1D2315BE5`
+- size: 82.029.376 B · firmado producción (`CN=MoneyFOSS`, cert SHA-256 `83389ea5…326c`)
 - R8 + shrinkResources, sin `debuggable`, `allowBackup=false`
 - permisos: solo propio DYNAMIC_RECEIVER; sin INTERNET/storage/alert/vibrate/network-state
-- fuente: HEAD `d98a667`, árbol limpio; suite 138/138 + typechecks en 0 sobre ese árbol
+- fuente: HEAD `4279e79` (bundle reconstruido de ese código); suite 140/140 + typechecks en 0 + `expo export` OK
+- registro: DECISIONS T-029 (supera al artefacto de T-028)
 
 ## Permissions (VERIFIED vía aapt2 sobre el APK final)
 
@@ -59,7 +60,7 @@ Sin dependencias nuevas en este sprint salvo `expo-build-properties`/`expo-syste
 
 ## Financial Regression (VERIFIED)
 
-Suite completa 138/138: int64, >2⁵³, overflow, negativos, cero, multicurrency, conversión + fee, tarjeta compra/pago, transfer, income/expense, balances, T-016, validación determinista, fail-closed. Cero cambios a invariantes.
+Suite completa 140/140: int64, >2⁵³, overflow, negativos, cero, multicurrency, conversión + fee, tarjeta compra/pago, transfer, income/expense, balances, T-016, validación determinista, fail-closed, snapshot de Home, detalles de fila localizados. Cero cambios a invariantes.
 
 ## Persistence Regression (VERIFIED)
 

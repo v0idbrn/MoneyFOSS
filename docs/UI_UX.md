@@ -46,7 +46,7 @@ System font (zero font dependencies). Scale: hero 28/700 · title 20/700 · sect
 
 ## 5. Components (`app/src/components.tsx`)
 
-`Screen` (SafeArea + scroll + padding) · `H1/Section/Body/Meta/Small` · `Amount` (grouped exact integer formatting + `accessibilityLabel` "minus/plus …") · `Btn` (primary/secondary/danger, ripple, disabled state) · `Field` (label + input + inline error, `accessibilityLabel`, error has `role="alert"`) · `Chip` (filters/options, `selected` state) · `EmptyState` (icon + what-next + optional action) · `ErrorState` (icon + domain message, no stack traces; título y "Try again" localizados vía `Dict`) · `Fab` (single primary action) · `TxRow` (icon by kind + title + date/detail + signed amount lines).
+`Screen` (SafeArea + scroll + padding) · `H1/Section/Body/Meta/Small` · `Amount` (grouped exact integer formatting + `accessibilityLabel` "minus/plus …") · `Btn` (primary/secondary/danger, ripple, disabled state) · `Field` (label + input + inline error, `accessibilityLabel`, error has `role="alert"`) · `Chip` (filters/options, `selected` state) · `EmptyState` (icon + what-next + optional action) · `ErrorState` (icon + domain message, no stack traces; título y "Try again" localizados vía `Dict`; gate con retry) · `FormError` (mensaje de validación/acción inline, `role="alert"`, danger) · `Fab` (single primary action) · `TxRow` (icon by kind + title + date/detail + signed amount lines).
 
 ## 6. Iconography
 
