@@ -326,6 +326,17 @@ Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisi
 
 ---
 
+### T-034 — JSON export v2: `budgets[]` (cierra la deuda de formato de T-032)
+
+- **Estado:** PROVISIONAL (formato de solo salida, sin consumidores externos conocidos; evidencia = suite)
+- **Fecha:** 2026-10-07
+- **SUPERSEDE (alcance):** la deuda "presupuestos en export JSON" del párrafo *Fuera de alcance v1* de T-032 queda cerrada con este cambio; el resto de T-032 sigue vigente.
+- **Contexto:** el JSON export era `moneyfoss-export` v1 sin `budgets[]`; la UI no podía describirlo como estado completo y T-032 lo registró como deuda.
+- **Decisión:** `JSON_EXPORT_VERSION = 2`; `exportJson` acepta `budgets` y emite `budgets: [{ id, category_id, currency, amount_minor }]` (`amount_minor` string canónico de minor units, nunca número/float). Versión bump en lugar de cambio silencioso dentro de v1: cualquier consumidor que cacheara un `version` no confundirá payloads distintos. Sin importador (sigue siendo solo salida); restore de budgets entra únicamente por `.moneybackup` (T-010). Copy de UI actualizado a "cuentas, categorías, movimientos y presupuestos"; sigue describiendo al JSON como no-restorable.
+- **Evidencia:** `tests/export.test.ts` (JSON declara formato/versión, `budgets[]` exacto, transacciones re-validan con `fromWire`); §8 de DATA_FORMAT actualizado a v2. Deuda restante de T-032: budgets en `.moneybackup` (depende de T-010) y Goals/Recurring, que no cambian con esto.
+
+---
+
 ## Cómo añadir una decisión nueva
 
 ```

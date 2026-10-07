@@ -48,7 +48,7 @@ export default function More(): React.JSX.Element {
       const content =
         kind === 'csv'
           ? transactionsCsv(ledger.transactions, ledger.accounts, ledger.categories)
-          : exportJson(ledger.accounts, ledger.categories, ledger.transactions);
+          : exportJson(ledger.accounts, ledger.categories, ledger.transactions, ledger.budgets);
       Share.share({ message: content, title: kind === 'csv' ? 'moneyfoss-transactions.csv' : 'moneyfoss-export.json' })
         .then((result) => {
           if (result.action === Share.sharedAction) {

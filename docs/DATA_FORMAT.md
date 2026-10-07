@@ -136,22 +136,23 @@ Semántica de import (T-031): **existing-wins por `tx_id`** — idéntico byte a
 - **Límites de import:** 8 MiB y 50.000 filas (untrusted, §13b). Parser estricto: comilla sin cerrar, comilla rara en celda sin comillas y junk tras comilla de cierre = `CSV_INVALID`.
 - **Residual documentado (sin mitigar, a propósito):** las celdas de texto que empiezan con `=`/`+`/`@` podrían interpretarse como fórmulas al abrirse en una hoja de cálculo. Escaparlas rompería el round-trip exacto de datos (un memo que empieza con `'` perdería el carácter en re-import); la amenaza requiere contenido ya presente en el ledger + apertura manual en una planilla + confirmación del warnings del cliente. Aceptado; revisar si aparece evidencia contraria.
 
-## 8. JSON export (`moneyfoss-export` v1) — solo salida
+## 8. JSON export (`moneyfoss-export` v2) — solo salida
 
 **Propósito (§13a):** interoperabilidad máquina-a-máquina. **No es formato de restore ni backup** (el restore entra solo por `.moneybackup`, T-010) y **no tiene importador** — export de solo lectura.
 
 ```json
 {
   "format": "moneyfoss-export",
-  "version": 1,
+  "version": 2,
   "currencies": [ { "code": "ARS", "exponent": 2 } ],
   "accounts": [ { "id": "bank-ars", "name": "...", "type": "ASSET", "currency": "ARS" } ],
   "categories": [ { "id": "food", "name": "Food", "kind": "expense" } ],
-  "transactions": [ { "…wire de §2…": "" } ]
+  "transactions": [ { "…wire de §2…": "" } ],
+  "budgets": [ { "id": "food@ARS", "category_id": "food", "currency": "ARS", "amount_minor": "100000" } ]
 }
 ```
 
 - `transactions[]` es exactamente el wire de §2 (importes como strings de minor units); re-valida con `fromWire` contra los `accounts`/`categories` del mismo archivo (testeado).
 - `currencies[]` trae la tabla de exponentes para que el consumidor pueda formatear montos sin la app.
-- **Deuda registrada (T-032):** los `budgets` (Fase 5) todavía no viajan en v1 — mientras exista esta deuda, la UI no debe describir el JSON como "completo" de forma literal. Agregar `budgets[]` es un cambio de formato que debe registrarse en §8 y en T-032 antes de implementarse.
+- `budgets[]` (añadido en v2, T-034): reglas de presupuesto con `amount_minor` como string canónico de minor units; cierra la deuda registrada por T-032.
 - Claves desconocidas en un futuro consumidor: el mismo principio de §1 aplica a quien reciba este archivo.
