@@ -15,4 +15,5 @@ export type RootStackParamList = {
   TransactionDetail: { txId: string };
   AddTransaction: { kind?: EntryKind; accountId?: string } | undefined;
   Categories: undefined;
+  ImportCsv: undefined;
 };

@@ -95,6 +95,7 @@ export default function More(): React.JSX.Element {
       <Meta>{t.moreExportBody}</Meta>
       <Btn title={t.exportCsv} onPress={() => shareExport('csv')} kind="secondary" icon="table-chart" />
       <Btn title={t.exportJson} onPress={() => shareExport('json')} kind="secondary" icon="code" />
+      <Btn title={t.importTitle} onPress={() => navigation.navigate('ImportCsv')} kind="secondary" icon="file-download" />
       <Divider />
       <Section>{t.moreDanger}</Section>
       <Btn title={armed ? t.moreConfirmErase : t.moreErase} onPress={erase} kind="danger" icon="delete-forever" />

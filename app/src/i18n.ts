@@ -160,6 +160,20 @@ export interface Dict {
   readonly exportJson: string;
   readonly exportShared: string;
   readonly exportFailed: string;
+  readonly importTitle: string;
+  readonly importBody: string;
+  readonly importField: string;
+  readonly importAnalyze: string;
+  readonly importPreview: string;
+  readonly importConfirm: string;
+  readonly importNew: string;
+  readonly importDuplicates: string;
+  readonly importConflicts: string;
+  readonly importRejected: string;
+  readonly importNewAccounts: string;
+  readonly importNewCategories: string;
+  readonly importNothing: string;
+  readonly importDone: string;
   readonly a11yMinus: string;
   readonly a11yPlus: string;
   readonly a11yZero: string;
@@ -326,6 +340,20 @@ const es: Dict = {
   exportJson: 'Exportar JSON (completo)',
   exportShared: 'Exportación lista para compartir.',
   exportFailed: 'No se pudo preparar la exportación.',
+  importTitle: 'Importar CSV',
+  importBody: 'Pegá un CSV exportado por MoneyFOSS. Se analiza primero: nada se escribe hasta que confirmes.',
+  importField: 'Contenido CSV',
+  importAnalyze: 'Analizar',
+  importPreview: 'Vista previa',
+  importConfirm: 'Confirmar importación',
+  importNew: 'Movimientos nuevos',
+  importDuplicates: 'Duplicados (se omiten)',
+  importConflicts: 'Conflictos (se conserva lo existente)',
+  importRejected: 'Rechazados',
+  importNewAccounts: 'Cuentas nuevas',
+  importNewCategories: 'Categorías nuevas',
+  importNothing: 'Sin movimientos nuevos para importar.',
+  importDone: 'Importación completada.',
   a11yMinus: 'menos',
   a11yPlus: 'más',
   a11yZero: 'cero',
@@ -504,6 +532,20 @@ const en: Dict = {
   exportJson: 'Export JSON (full)',
   exportShared: 'Export ready to share.',
   exportFailed: 'Could not prepare the export.',
+  importTitle: 'Import CSV',
+  importBody: 'Paste a CSV exported by MoneyFOSS. It is analyzed first: nothing is written until you confirm.',
+  importField: 'CSV content',
+  importAnalyze: 'Analyze',
+  importPreview: 'Preview',
+  importConfirm: 'Confirm import',
+  importNew: 'New transactions',
+  importDuplicates: 'Duplicates (skipped)',
+  importConflicts: 'Conflicts (existing kept)',
+  importRejected: 'Rejected',
+  importNewAccounts: 'New accounts',
+  importNewCategories: 'New categories',
+  importNothing: 'No new transactions to import.',
+  importDone: 'Import finished.',
   a11yMinus: 'minus',
   a11yPlus: 'plus',
   a11yZero: 'zero',

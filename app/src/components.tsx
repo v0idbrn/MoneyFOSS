@@ -139,6 +139,7 @@ export function Field({
   keyboardType,
   error,
   maxLength,
+  multiline,
 }: {
   label: string;
   value: string;
@@ -147,18 +148,21 @@ export function Field({
   keyboardType?: 'default' | 'decimal-pad';
   error?: string;
   maxLength?: number;
+  multiline?: boolean;
 }): React.JSX.Element {
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <TextInput
-        style={[styles.input, error !== undefined && error !== '' ? styles.inputError : null]}
+        style={[styles.input, error !== undefined && error !== '' ? styles.inputError : null, multiline === true ? styles.inputMultiline : null]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={colors.textMuted}
         keyboardType={keyboardType ?? 'default'}
         maxLength={maxLength}
+        multiline={multiline}
+        textAlignVertical={multiline === true ? 'top' : undefined}
         accessibilityLabel={label}
       />
       {error !== undefined && error !== '' ? (
@@ -341,6 +345,7 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   inputError: { borderColor: colors.danger },
+  inputMultiline: { minHeight: 180 },
   fieldError: { ...type.small, color: colors.danger },
   formError: { ...type.body, color: colors.danger },
   chip: {
