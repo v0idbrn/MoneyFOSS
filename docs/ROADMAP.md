@@ -65,15 +65,16 @@
 
 #### P0.1 Financial Core
 - [x] accounts, transactions, income, expense, transfers, adjustments
-- [x] categories, subcategories, notes, dates
+- [x] categories (planas), dates, memo de transacción
+- [ ] subcategorías / notas de cuenta — decisión UX OPEN (PHASE0 §15, §9); no cerrar por invención
 - [x] multicurrency correctness, conversion correctness
 - [x] **UX Polish - Home**: snapshot por moneda (cuentas en cero incluidas, equity excluido), lista de cuentas con saldo, empty states sin apilar, "Mostrar todo" a Movimientos, detail ES/EN en filas
 - [x] **UX Polish - Accounts**: pressed/ripple, first-run form sin grupos "(0)", validación de nombre local, rename con toast
 - [x] **UX Polish - Transactions**: conteo "N de M" honesto sobre el conjunto filtrado
-- [ ] **UX Polish - Transactions (resto)**: sorting indicators
+- [x] **UX Polish - Transactions (resto)**: sorting indicators — descartado (YAGNI: orden estable ya garantizado)
 - [x] **UX Polish - Transaction Detail**: postings con nombres de cuenta, block de conversión completo
 - [x] **UX Polish - Categories**: two-tap delete armado, rename con toast, validación de nombre local
-- [ ] **UX Polish - Cross-flow (resto)**: loading states de lista (reads sync; solo spinner de DB-open existe)
+- [x] **UX Polish - Cross-flow (resto)**: loading states — descartado (YAGNI: reads síncronos; solo spinner de DB-open)
 
 #### P0.2 Ledger Integrity
 - [x] Double-entry invariants
