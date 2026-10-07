@@ -30,6 +30,10 @@ export default function Budgets(): React.JSX.Element {
       setError(t.budgetsPickCategory);
       return;
     }
+    if (limit.trim() === '') {
+      setError(t.budgetsNeedPositive);
+      return;
+    }
     try {
       const parsed = parseMoney(normalizeAmountInput(limit), currency);
       if (parsed.amount <= 0n) {
@@ -92,8 +96,8 @@ export default function Budgets(): React.JSX.Element {
       <Section>{t.budgetsNewSection}</Section>
       <Meta>{t.budgetsCategory}</Meta>
       <View style={{ flexDirection: 'row' }}>
-        <Chip label={t.catsExpense} active={kind === 'expense'} onPress={() => setKind('expense')} />
-        <Chip label={t.catsIncome} active={kind === 'income'} onPress={() => setKind('income')} />
+        <Chip label={t.catsExpense} active={kind === 'expense'} onPress={() => { setKind('expense'); setCategoryId(null); }} />
+        <Chip label={t.catsIncome} active={kind === 'income'} onPress={() => { setKind('income'); setCategoryId(null); }} />
       </View>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {listedCategories.map((category) => (
