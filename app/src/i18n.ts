@@ -113,6 +113,7 @@ export interface Dict {
   readonly entryNotePh: string;
   readonly entrySave: string;
   readonly needAccount: string;
+  readonly needName: string;
   readonly needFrom: string;
   readonly needTo: string;
   readonly needExpenseCat: string;
@@ -131,6 +132,7 @@ export interface Dict {
   readonly catsSaveName: string;
   readonly catsRename: string;
   readonly catsDelete: string;
+  readonly catsConfirmDelete: string;
   readonly catsBlockedDelete: string;
   readonly catsNewSection: string;
   readonly catsName: string;
@@ -156,6 +158,7 @@ export interface Dict {
   readonly toastSaved: string;
   readonly toastDeleted: string;
   readonly toastCreated: string;
+  readonly toastNameSaved: string;
   readonly rateLabel: string;
   readonly withFee: string;
   readonly rowTransfer: string;
@@ -268,6 +271,7 @@ const es: Dict = {
   entryNotePh: '¿Qué fue esto?',
   entrySave: 'Guardar movimiento',
   needAccount: 'Elegí una cuenta.',
+  needName: 'Ingresá un nombre.',
   needFrom: 'Elegí la cuenta de origen.',
   needTo: 'Elegí la cuenta de destino.',
   needExpenseCat: 'Elegí una categoría de gasto.',
@@ -286,6 +290,7 @@ const es: Dict = {
   catsSaveName: 'Guardar nombre',
   catsRename: 'Renombrar',
   catsDelete: 'Eliminar',
+  catsConfirmDelete: 'Tocá de nuevo para confirmar la eliminación',
   catsBlockedDelete: 'Esta categoría está usada en movimientos y no se puede eliminar. El historial conserva su significado.',
   catsNewSection: 'Nueva categoría',
   catsName: 'Nombre',
@@ -311,6 +316,7 @@ const es: Dict = {
   toastSaved: 'Movimiento guardado',
   toastDeleted: 'Eliminado',
   toastCreated: 'Creado',
+  toastNameSaved: 'Nombre guardado',
   rateLabel: 'Tasa',
   withFee: 'con comisión',
   rowTransfer: 'Transferencia entre cuentas',
@@ -435,6 +441,7 @@ const en: Dict = {
   entryNotePh: 'What was this?',
   entrySave: 'Save transaction',
   needAccount: 'Choose an account.',
+  needName: 'Enter a name.',
   needFrom: 'Choose the source account.',
   needTo: 'Choose the destination account.',
   needExpenseCat: 'Choose an expense category.',
@@ -453,6 +460,7 @@ const en: Dict = {
   catsSaveName: 'Save name',
   catsRename: 'Rename',
   catsDelete: 'Delete',
+  catsConfirmDelete: 'Tap again to confirm delete',
   catsBlockedDelete: 'This category is used by transactions and cannot be deleted. History keeps its meaning.',
   catsNewSection: 'New category',
   catsName: 'Name',
@@ -478,6 +486,7 @@ const en: Dict = {
   toastSaved: 'Transaction saved',
   toastDeleted: 'Deleted',
   toastCreated: 'Created',
+  toastNameSaved: 'Name saved',
   rateLabel: 'Rate',
   withFee: 'with fee',
   rowTransfer: 'Transfer between accounts',

@@ -9,7 +9,7 @@ import { useStrings } from '../lang';
 import { describeTransaction } from '../lib/describe';
 import { displayCategoryName } from '../lib/categories';
 import { formatDisplayAmount } from '../lib/format';
-import { Amount, Body, Btn, Divider, ErrorState, H1, Meta, Screen, Section, useToast } from '../components';
+import { Amount, Body, Btn, Divider, ErrorState, FormError, H1, Meta, Screen, Section, useToast } from '../components';
 import type { RootStackParamList } from '../navtypes';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -99,7 +99,8 @@ export default function TransactionDetail(): React.JSX.Element {
         ? current.postings.map((posting, index) => (
             <View key={`${posting.accountId}-${String(index)}`}>
               <Body>
-                {posting.accountId} {posting.kind === 'bridge' ? t.detailBridge : ''}
+                {accounts.get(posting.accountId)?.name ?? posting.accountId}{' '}
+                {posting.kind === 'bridge' ? t.detailBridge : ''}
               </Body>
               <Meta>
                 {formatDisplayAmount(posting.amount, posting.currency)} {posting.currency}
@@ -110,7 +111,7 @@ export default function TransactionDetail(): React.JSX.Element {
         : null}
       <Divider />
       <Btn title={armed ? t.detailConfirmDelete : t.detailDelete} onPress={remove} kind="danger" icon="delete-outline" />
-      {error !== '' ? <Meta>{error}</Meta> : null}
+      {error !== '' ? <FormError message={error} /> : null}
     </Screen>
   );
 }

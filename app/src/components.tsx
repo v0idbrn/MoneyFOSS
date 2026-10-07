@@ -227,6 +227,14 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
   );
 }
 
+export function FormError({ message }: { message: string }): React.JSX.Element {
+  return (
+    <Text style={styles.formError} accessibilityRole="alert">
+      {message}
+    </Text>
+  );
+}
+
 export function Fab({ onPress, label }: { onPress: () => void; label: string }): React.JSX.Element {
   return (
     <Pressable
@@ -334,6 +342,7 @@ const styles = StyleSheet.create({
   },
   inputError: { borderColor: colors.danger },
   fieldError: { ...type.small, color: colors.danger },
+  formError: { ...type.body, color: colors.danger },
   chip: {
     borderWidth: 1,
     borderColor: colors.border,

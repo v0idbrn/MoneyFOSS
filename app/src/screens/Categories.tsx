@@ -5,7 +5,7 @@ import { getDb, newTxId } from '../db';
 import { useLedger } from '../state';
 import { useStrings } from '../lang';
 import { displayCategoryName } from '../lib/categories';
-import { Body, Btn, Chip, EmptyState, Field, H1, Meta, Screen, Section, useToast } from '../components';
+import { Body, Btn, Chip, EmptyState, Field, FormError, H1, Meta, Screen, Section, useToast } from '../components';
 
 export default function Categories(): React.JSX.Element {
   const ledger = useLedger();
@@ -15,6 +15,7 @@ export default function Categories(): React.JSX.Element {
   const [kind, setKind] = useState<'expense' | 'income'>('expense');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [armedId, setArmedId] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   const useCounts = useMemo(() => {
@@ -30,6 +31,10 @@ export default function Categories(): React.JSX.Element {
   }, [ledger.transactions]);
 
   function create(): void {
+    if (name.trim() === '') {
+      setError(t.needName);
+      return;
+    }
     try {
       saveCategory(getDb(), { id: `cat-${newTxId()}`, name: name.trim(), kind });
       setName('');
@@ -42,12 +47,17 @@ export default function Categories(): React.JSX.Element {
   }
 
   function saveRename(id: string): void {
+    if (editName.trim() === '') {
+      setError(t.needName);
+      return;
+    }
     try {
       renameCategory(getDb(), id, editName.trim());
       setEditingId(null);
       setEditName('');
       setError('');
       ledger.refresh();
+      showToast(t.toastNameSaved, 'success');
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -59,12 +69,18 @@ export default function Categories(): React.JSX.Element {
         setError(t.catsBlockedDelete);
         return;
       }
+      if (armedId !== id) {
+        setArmedId(id);
+        return;
+      }
       deleteCategory(getDb(), id);
+      setArmedId(null);
       setError('');
       ledger.refresh();
       showToast(t.toastDeleted, 'success');
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
+      setArmedId(null);
     }
   }
 
@@ -92,8 +108,22 @@ export default function Categories(): React.JSX.Element {
               </View>
             ) : (
               <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
-                <Btn title={t.catsRename} onPress={() => { setEditingId(category.id); setEditName(category.name); }} kind="secondary" icon="edit" />
-                <Btn title={t.catsDelete} onPress={() => remove(category.id)} kind="danger" icon="delete-outline" />
+                <Btn
+                  title={t.catsRename}
+                  onPress={() => {
+                    setEditingId(category.id);
+                    setEditName(category.name);
+                    setArmedId(null);
+                  }}
+                  kind="secondary"
+                  icon="edit"
+                />
+                <Btn
+                  title={armedId === category.id ? t.catsConfirmDelete : t.catsDelete}
+                  onPress={() => remove(category.id)}
+                  kind="danger"
+                  icon="delete-outline"
+                />
               </View>
             )}
           </View>
@@ -101,7 +131,7 @@ export default function Categories(): React.JSX.Element {
       )}
       <Section>{t.catsNewSection}</Section>
       <Field label={t.catsName} value={name} onChangeText={setName} placeholder={t.catsNamePh} />
-      {error !== '' ? <Meta>{error}</Meta> : null}
+      {error !== '' ? <FormError message={error} /> : null}
       <Btn title={t.createCategory(kind === 'expense' ? t.catsExpense : t.catsIncome)} onPress={create} icon="add" />
     </Screen>
   );

@@ -12,7 +12,7 @@ import { useLedger } from '../state';
 import { useStrings } from '../lang';
 import { normalizeAmountInput } from '../lib/format';
 import { displayCategoryName } from '../lib/categories';
-import { Btn, Chip, EmptyState, ErrorState, Field, H1, Meta, Screen, useToast } from '../components';
+import { Btn, Chip, EmptyState, Field, FormError, H1, Meta, Screen, useToast } from '../components';
 import type { EntryKind, RootStackParamList } from '../navtypes';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -329,7 +329,7 @@ export default function AddTransaction(): React.JSX.Element {
       <Field label={t.entryDate} value={date} onChangeText={setDate} placeholder={t.entryDatePh} maxLength={10} />
       <Field label={t.entryNote} value={note} onChangeText={setNote} placeholder={t.entryNotePh} />
 
-      {error !== '' ? <ErrorState message={error} /> : null}
+      {error !== '' ? <FormError message={error} /> : null}
       <Btn title={t.entrySave} onPress={save} icon="check" />
     </Screen>
   );

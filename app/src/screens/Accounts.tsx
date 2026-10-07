@@ -13,7 +13,7 @@ import { useLedger } from '../state';
 import { useStrings } from '../lang';
 import { formatDisplayAmount } from '../lib/format';
 import { normalizeAmountInput } from '../lib/format';
-import { Body, Btn, Chip, EmptyState, Field, H1, Meta, Screen, Section, useToast } from '../components';
+import { Body, Btn, Chip, EmptyState, Field, FormError, H1, Meta, Screen, Section, useToast } from '../components';
 import { colors } from '../theme';
 import type { RootStackParamList } from '../navtypes';
 import type { Account } from '../../../src/domain/types.ts';
@@ -46,6 +46,10 @@ export default function Accounts(): React.JSX.Element {
   }
 
   function create(): void {
+    if (name.trim() === '') {
+      setError(t.needName);
+      return;
+    }
     try {
       const db = getDb();
       const account: Account = { id: newAccountId(), name: name.trim(), type: kind, currency };
@@ -120,8 +124,12 @@ export default function Accounts(): React.JSX.Element {
         />
       ) : (
         <>
-          {renderGroup(t.accountsCashBank, assets)}
-          {renderGroup(t.accountsCardsDebts, liabilities)}
+          {visible.length > 0 ? (
+            <>
+              {renderGroup(t.accountsCashBank, assets)}
+              {renderGroup(t.accountsCardsDebts, liabilities)}
+            </>
+          ) : null}
           <Btn title={showForm ? t.cancel : t.accountsNew} onPress={() => setShowForm(!showForm)} kind="secondary" icon="add" />
         </>
       )}
@@ -148,7 +156,7 @@ export default function Accounts(): React.JSX.Element {
             keyboardType="decimal-pad"
             error={undefined}
           />
-          {error !== '' ? <Meta>{error}</Meta> : null}
+          {error !== '' ? <FormError message={error} /> : null}
           <Btn title={t.accountsCreate} onPress={create} icon="check" />
         </View>
       ) : null}
