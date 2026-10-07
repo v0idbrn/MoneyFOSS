@@ -53,7 +53,7 @@
 - [x] Domain validation (invariants, balance rules, multicurrency)
 - [x] Conversion logic with exact re-derivation
 - [x] 138 tests passing, typecheck passing
-- [x] SQLite schema v1 with migrations
+- [x] SQLite schema v2 with migrations (v1 + budgets)
 - [x] Repository layer (CRUD + validation)
 - [x] Production build pipeline (R8, shrinkResources, release signing)
 

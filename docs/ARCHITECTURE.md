@@ -43,7 +43,7 @@ El dominio no conoce SQLite, React, ni `Date.now()` (las fechas entran como dato
 | Archivo | Responsabilidad |
 |---|---|
 | `db.ts` | puerto `Db` mínimo y propio (`exec`/`query`/`transaction`/`close`, solo placeholders `?`) |
-| `schema.ts` | schema v1 + lista `MIGRATIONS` |
+| `schema.ts` | schema v2 (v1 + `budgets` en v2) + lista `MIGRATIONS` |
 | `migrate.ts` | runner determinista (versión, idempotencia, mismatch, fallo cerrado) |
 | `repository.ts` | mapping dominio↔filas con validación en escritura y lectura; sin SQL fuera de aquí |
 | `drivers/node-sqlite.ts` | driver de verificación con `node:sqlite` (stdlib, ejecutado por los tests) |

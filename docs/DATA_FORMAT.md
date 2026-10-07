@@ -153,4 +153,5 @@ Semántica de import (T-031): **existing-wins por `tx_id`** — idéntico byte a
 
 - `transactions[]` es exactamente el wire de §2 (importes como strings de minor units); re-valida con `fromWire` contra los `accounts`/`categories` del mismo archivo (testeado).
 - `currencies[]` trae la tabla de exponentes para que el consumidor pueda formatear montos sin la app.
+- **Deuda registrada (T-032):** los `budgets` (Fase 5) todavía no viajan en v1 — mientras exista esta deuda, la UI no debe describir el JSON como "completo" de forma literal. Agregar `budgets[]` es un cambio de formato que debe registrarse en §8 y en T-032 antes de implementarse.
 - Claves desconocidas en un futuro consumidor: el mismo principio de §1 aplica a quien reciba este archivo.

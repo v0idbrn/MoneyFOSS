@@ -52,7 +52,6 @@ export default function ImportCsv(): React.JSX.Element {
   return (
     <Screen>
       <H1>{t.importTitle}</H1>
-      <Section>{t.importField}</Section>
       <Meta>{t.importBody}</Meta>
       <Field
         label={t.importField}
