@@ -3,6 +3,7 @@ import type { Db, DbParam, DbRow } from '../db.ts';
 
 class NodeSqliteDb implements Db {
   private readonly inner: DatabaseSync;
+  private depth = 0;
 
   constructor(inner: DatabaseSync) {
     this.inner = inner;
@@ -21,8 +22,17 @@ class NodeSqliteDb implements Db {
   }
 
   transaction<T>(fn: () => T): T {
-    this.inner.exec('BEGIN');
+    if (this.depth > 0) {
+      this.depth += 1;
+      try {
+        return fn();
+      } finally {
+        this.depth -= 1;
+      }
+    }
+    this.depth = 1;
     try {
+      this.inner.exec('BEGIN');
       const result = fn();
       this.inner.exec('COMMIT');
       return result;
@@ -33,6 +43,8 @@ class NodeSqliteDb implements Db {
         throw error;
       }
       throw error;
+    } finally {
+      this.depth = 0;
     }
   }
 

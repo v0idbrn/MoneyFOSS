@@ -8,6 +8,7 @@ import type { Db, DbParam, DbRow } from '../db.ts';
 
 class ExpoSqliteDb implements Db {
   private readonly inner: ExpoDatabase;
+  private depth = 0;
 
   constructor(inner: ExpoDatabase) {
     this.inner = inner;
@@ -26,7 +27,20 @@ class ExpoSqliteDb implements Db {
   }
 
   transaction<T>(fn: () => T): T {
-    return this.inner.withTransactionSync(fn);
+    if (this.depth > 0) {
+      this.depth += 1;
+      try {
+        return fn();
+      } finally {
+        this.depth -= 1;
+      }
+    }
+    this.depth = 1;
+    try {
+      return this.inner.withTransactionSync(fn);
+    } finally {
+      this.depth = 0;
+    }
   }
 
   close(): void {
