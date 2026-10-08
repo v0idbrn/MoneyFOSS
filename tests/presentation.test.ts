@@ -34,7 +34,7 @@ function sampleLedger(): Transaction[] {
 
 test('display amounts group without float and stay exact', () => {
   assert.equal(formatDisplayAmount(1000000n, 'ARS', 'en-US'), '10,000.00');
-  assert.equal(formatDisplayAmount(1000000n, 'ARS', 'es-AR'), '10.000.00');
+  assert.equal(formatDisplayAmount(1000000n, 'ARS', 'es-AR'), '10.000,00');
   assert.equal(formatDisplayAmount(-500n, 'ARS', 'en-US'), '-5.00');
   assert.equal(formatDisplayAmount(0n, 'ARS', 'en-US'), '0.00');
   assert.equal(formatDisplayAmount(1000n, 'CLP', 'en-US'), '1,000');

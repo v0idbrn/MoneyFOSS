@@ -6,8 +6,10 @@ export function formatDisplayAmount(amount: bigint, currency: string, locale?: s
   const digits = (negative ? -amount : amount).toString().padStart(def.exponent + 1, '0');
   const intPart = digits.slice(0, digits.length - def.exponent);
   const fracPart = def.exponent > 0 ? digits.slice(digits.length - def.exponent) : '';
-  const grouped = new Intl.NumberFormat(locale, { useGrouping: true }).format(BigInt(intPart));
-  return `${negative ? '-' : ''}${grouped}${def.exponent > 0 ? `.${fracPart}` : ''}`;
+  const formatter = new Intl.NumberFormat(locale, { useGrouping: true });
+  const grouped = formatter.format(BigInt(intPart));
+  const decimal = def.exponent > 0 ? (formatter.formatToParts(1.1).find((p) => p.type === 'decimal')?.value ?? '.') : '';
+  return `${negative ? '-' : ''}${grouped}${def.exponent > 0 ? `${decimal}${fracPart}` : ''}`;
 }
 
 export function formatSigned(amount: bigint, currency: string, locale?: string): string {
