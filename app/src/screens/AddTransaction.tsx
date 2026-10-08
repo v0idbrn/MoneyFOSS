@@ -251,13 +251,15 @@ export default function AddTransaction(): React.JSX.Element {
         </>
       )}
 
-      <Field
-        label={t.amountIn(pickedAccount?.currency ?? null)}
-        value={amount}
-        onChangeText={setAmount}
-        placeholder="0.00"
-        keyboardType="decimal-pad"
-      />
+      {!(foreignPrice && (kind === 'expense' || kind === 'card-purchase')) && (
+        <Field
+          label={t.amountIn(pickedAccount?.currency ?? null)}
+          value={amount}
+          onChangeText={setAmount}
+          placeholder="0.00"
+          keyboardType="decimal-pad"
+        />
+      )}
 
       {(kind === 'expense' || kind === 'card-purchase') && (
         <>
@@ -297,7 +299,7 @@ export default function AddTransaction(): React.JSX.Element {
         </>
       )}
 
-      {(kind === 'convert' || foreignPrice) && (
+      {(kind === 'convert' || (foreignPrice && (kind === 'expense' || kind === 'card-purchase'))) && (
         <>
           <Field label={t.entryRate} value={rate} onChangeText={setRate} placeholder="1180" keyboardType="decimal-pad" />
           <Meta>{t.entryRateMeaning}</Meta>
