@@ -24,8 +24,8 @@ export default function Transactions(): React.JSX.Element {
   const accounts = useMemo(() => new Map(ledger.accounts.map((a) => [a.id, a])), [ledger.accounts]);
   const categories = useMemo(() => new Map(ledger.categories.map((c) => [c.id, c])), [ledger.categories]);
   const visible = useMemo(
-    () => sortNewestFirst(filterTransactions(ledger.transactions, filter, accounts, categories)),
-    [ledger.transactions, filter, accounts, categories],
+    () => sortNewestFirst(filterTransactions(ledger.transactions, filter, accounts, categories, t)),
+    [ledger.transactions, filter, accounts, categories, t],
   );
   const active = activeFilterCount(filter);
   const shown = expanded ? visible : visible.slice(0, PAGE_SIZE);

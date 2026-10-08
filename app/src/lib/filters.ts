@@ -1,5 +1,7 @@
 import { describeTransaction, type TxKind } from './describe.ts';
+import { displayCategoryName } from './categories.ts';
 import type { Account, Category, Transaction } from '../../../src/domain/types.ts';
+import type { Dict } from '../i18n.ts';
 
 export interface TxFilter {
   readonly text: string;
@@ -32,6 +34,7 @@ export function filterTransactions(
   filter: TxFilter,
   accounts: ReadonlyMap<string, Account>,
   categories: ReadonlyMap<string, Category>,
+  t?: Dict,
 ): Transaction[] {
   const needle = filter.text.trim().toLowerCase();
   return txs.filter((tx) => {
@@ -41,7 +44,7 @@ export function filterTransactions(
     if (filter.categoryId !== null && !tx.postings.some((posting) => posting.categoryId === filter.categoryId)) {
       return false;
     }
-    const view = describeTransaction(tx, accounts, categories);
+    const view = describeTransaction(tx, accounts, categories, t);
     if (filter.kind !== null && view.kind !== filter.kind) {
       return false;
     }
@@ -50,7 +53,8 @@ export function filterTransactions(
     }
     const names = tx.postings.map((posting) => {
       if (posting.categoryId !== undefined) {
-        return categories.get(posting.categoryId)?.name ?? '';
+        const cat = categories.get(posting.categoryId);
+        return cat !== undefined && t !== undefined ? displayCategoryName(cat, t) : cat?.name ?? '';
       }
       return accounts.get(posting.accountId)?.name ?? posting.accountId;
     });
