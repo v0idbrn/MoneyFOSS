@@ -211,5 +211,6 @@
 ---
 
 *Last updated: 2026-10-08*
-*Last build: `c5f8e99` — production-signed APK (T-036), 82.069.792 B, SHA-256 `D86745B0123055D4877D9D11F9771545B22499C2BA67DBB2BD7380217D78B025`*
-*Tests: 178/178 pass | Typecheck: PASS (raíz + app) | Export: JSON v3 OK | APK: sin cambios desde T-036 (último known-good)*
+*Last build: T-042 — production-signed APK v1.1.0 (versionCode 2, Goals v1), 82.085.556 B, SHA-256 `872C429F5DF4BF49BCD834A66739556AA87DA6D5013D22D1F0D53C1C14356432`, instalado en dispositivo vía `adb install -r` (datos preservados, arranque sin crash)*
+*Previous known-good: `c5f8e99` — production-signed APK (T-036), 82.069.792 B, SHA-256 `D86745B0123055D4877D9D11F9771545B22499C2BA67DBB2BD7380217D78B025` (copia estable preservada)*
+*Tests: 178/178 pass | Typecheck: PASS (raíz + app) | Export: JSON v3 OK | Expo export: OK*

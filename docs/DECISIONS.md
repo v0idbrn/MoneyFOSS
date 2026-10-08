@@ -469,3 +469,15 @@ Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisi
   - Export: JSON `moneyfoss-export` v3 agrega `goals[]` (`id`, `name`, `currency`, `target_minor` string, `target_date?`, `account_ids[]`). Sin importador JSON (export de solo salida, como budgets): restore entra únicamente por `.moneybackup` (T-010). CSV de transacciones sin cambios (representa transacciones).
 - **Evidencia:** `tests/goals.test.ts` (CRUD, validación, multi-cuenta, negativo, over-target, aislamiento por moneda, `getGoal`, atomicidad de update fallido, bloqueo de borrado de cuenta, round-trip JSON) + `tests/export.test.ts` (`goals[]` exacto); suite 178/178 + typechecks en 0 (raíz + app).
 - **NO evidencia:** prueba en dispositivo (T-019/T-021).
+
+---
+
+### T-042 — Séptimo release APK (Goals v1, instalado en dispositivo)
+
+- **Estado:** PROVISIONAL (evidencia de artefacto + arranque en dispositivo real; flujo completo en airplane mode pendiente)
+- **Fecha:** 2026-10-08
+- **SUPERSEDE (artefacto):** el APK de T-036 como referencia vigente para release formal; la evidencia de T-036 se conserva como historial. Copia estable en `C:\Users\WinterOS\.moneyfoss\releases\app-release-T042.apk`.
+- **Alcance del código desde `c5f8e99`:** 5 commits — Goals dominio+persistencia (`64a90ba`), Goals progreso/pantalla/export v3 (`1b14a65`), tests Goals (`a9409c9`), docs T-039/040/041 (`dc18aff`), bump versión 1.1.0/versionCode 2 (`532820f`).
+- **Evidencia:** `assembleRelease` OK (13m41s, online, `--max-workers=2`): `app-release.apk`, 82.085.556 B, SHA-256 `872C429F5DF4BF49BCD834A66739556AA87DA6D5013D22D1F0D53C1C14356432`, `com.moneyfoss.app` v1.1.0 (versionCode 2). `apksigner verify` exit=0, misma firma producción (`CN=MoneyFOSS`, cert SHA-256 `83389ea5…326c`). Manifest (aapt2, build-tools 36.0.0): versionCode 2 / versionName 1.1.0, único `uses-permission` propio (cero `android.permission.*`), `allowBackup=false`, sin `debuggable`. Instalado en dispositivo vía `adb install -r` (misma firma → datos preservados, migración v2→v3 al abrir); app lanzada y proceso vivo >20s sin `FATAL`/excepciones JS en logcat.
+- **Dispositivo previo:** tenía build producción versionCode 1 instalado el 2026-10-06 (cert idéntico). Instalación inicial bloqueada por almacenamiento lleno (0% libre); el usuario liberó espacio y el reintento dio `Success`.
+- **NO evidencia (sin cambios):** flujo completo en airplane mode; T-019 y T-021 siguen PROVISIONALES (este arranque es evidencia parcial, no cierre).
