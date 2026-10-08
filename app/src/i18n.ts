@@ -136,6 +136,7 @@ export interface Dict {
   readonly catsDelete: string;
   readonly catsConfirmDelete: string;
   readonly catsBlockedDelete: string;
+  readonly catsDeletedBudget: string;
   readonly catsNewSection: string;
   readonly catsName: string;
   readonly catsNamePh: string;
@@ -338,6 +339,7 @@ const es: Dict = {
   catsDelete: 'Eliminar',
   catsConfirmDelete: 'Tocá de nuevo para confirmar la eliminación',
   catsBlockedDelete: 'Esta categoría está usada en movimientos y no se puede eliminar. El historial conserva su significado.',
+  catsDeletedBudget: 'Categoría y su presupuesto eliminados.',
   catsNewSection: 'Nueva categoría',
   catsName: 'Nombre',
   catsNamePh: 'Comida, Colectivo, …',
@@ -552,6 +554,7 @@ const en: Dict = {
   catsDelete: 'Delete',
   catsConfirmDelete: 'Tap again to confirm delete',
   catsBlockedDelete: 'This category is used by transactions and cannot be deleted. History keeps its meaning.',
+  catsDeletedBudget: 'Category and its budget deleted.',
   catsNewSection: 'New category',
   catsName: 'Name',
   catsNamePh: 'Groceries, Bus, …',

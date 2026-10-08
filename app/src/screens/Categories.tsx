@@ -73,11 +73,12 @@ export default function Categories(): React.JSX.Element {
         setArmedId(id);
         return;
       }
+      const hadBudget = ledger.budgets.some((b) => b.categoryId === id);
       deleteCategory(getDb(), id);
       setArmedId(null);
       setError('');
       ledger.refresh();
-      showToast(t.toastDeleted, 'success');
+      showToast(hadBudget ? t.catsDeletedBudget : t.toastDeleted, 'success');
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       setArmedId(null);
