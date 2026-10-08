@@ -77,6 +77,7 @@ export default function AccountDetail(): React.JSX.Element {
     }
     try {
       deleteAccount(getDb(), current.id);
+      ledger.refresh();
       showToast(t.toastDeleted, 'success');
       navigation.goBack();
     } catch (e) {
