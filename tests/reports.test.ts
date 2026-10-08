@@ -61,3 +61,20 @@ test('reports fail closed on a non-canonical month', () => {
     (error: unknown) => error instanceof DomainError && error.code === 'INVALID_MONTH',
   );
 });
+
+test('month with only transfers yields no rows', () => {
+  const onlyTransfers = [
+    transfer({ refs, id: 'trf1', date: TODAY, from: acct('bank-ars'), to: acct('cash-ars'), amount: money(20000n, 'ARS') }),
+    transfer({ refs, id: 'trf2', date: TODAY, from: acct('cash-ars'), to: acct('bank-ars'), amount: money(10000n, 'ARS') }),
+  ];
+  const flows = monthFlowTotals(onlyTransfers, categories, monthOfDate(TODAY));
+  assert.equal(flows.length, 0, 'transfers must not create report rows');
+});
+
+test('categoryFlowTotals returns empty for month with no categorized expenses', () => {
+  const onlyIncome = [
+    income({ refs, id: 'inc1', date: TODAY, account: acct('bank-ars'), amount: money(500000n, 'ARS'), category: cat('salary') }),
+  ];
+  const expenses = categoryFlowTotals(onlyIncome, categories, monthOfDate(TODAY), 'expense');
+  assert.equal(expenses.length, 0, 'no expense category rows when no expenses');
+});
