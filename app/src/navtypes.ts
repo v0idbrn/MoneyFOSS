@@ -18,4 +18,5 @@ export type RootStackParamList = {
   ImportCsv: undefined;
   Budgets: undefined;
   Reports: undefined;
+  Goals: undefined;
 };

@@ -58,6 +58,7 @@ export interface Dict {
   readonly accDelete: string;
   readonly accConfirmDelete: string;
   readonly accBlockedDelete: string;
+  readonly accBlockedGoal: string;
   readonly recentIn: (n: number) => string;
   readonly accNoRecent: string;
   readonly txsTitle: string;
@@ -198,6 +199,27 @@ export interface Dict {
   readonly reportsByCategory: string;
   readonly reportsEmpty: string;
   readonly reportsEmptyBody: string;
+  readonly goalsTitle: string;
+  readonly goalsSubtitle: string;
+  readonly goalsEmpty: string;
+  readonly goalsEmptyBody: string;
+  readonly goalsNewSection: string;
+  readonly goalsName: string;
+  readonly goalsNamePh: string;
+  readonly goalsCurrency: string;
+  readonly goalsTarget: string;
+  readonly goalsTargetDate: string;
+  readonly goalsAccounts: string;
+  readonly goalsCreate: string;
+  readonly goalsUpdate: string;
+  readonly goalsEdit: string;
+  readonly goalsProgress: string;
+  readonly goalsRemaining: string;
+  readonly goalsPickAccounts: string;
+  readonly goalsNeedPositive: string;
+  readonly goalsInvalidDate: string;
+  readonly goalsNoAccountsForCurrency: string;
+  readonly goalsPickAtLeastOne: string;
   readonly a11yMinus: string;
   readonly a11yPlus: string;
   readonly a11yZero: string;
@@ -262,6 +284,7 @@ const es: Dict = {
   accDelete: 'Eliminar cuenta',
   accConfirmDelete: 'Tocá de nuevo para confirmar la eliminación',
   accBlockedDelete: 'Esta cuenta tiene movimientos y no se puede eliminar. Los saldos quedan intactos.',
+  accBlockedGoal: 'Esta cuenta es parte de una meta. Editá o eliminá la meta primero.',
   recentIn: (n) => `Recientes en esta cuenta (${n})`,
   accNoRecent: 'Sin movimientos en esta cuenta todavía.',
   txsTitle: 'Movimientos',
@@ -361,9 +384,9 @@ const es: Dict = {
   moreConfirmErase: 'Tocá de nuevo para borrar todo',
   moreErased: 'Datos borrados. Se restauraron las categorías por defecto.',
   moreExport: 'Exportar datos',
-  moreExportBody: 'CSV para hoja de cálculo; JSON con cuentas, categorías, movimientos y presupuestos. No son un backup restaurable.',
+  moreExportBody: 'CSV para hoja de cálculo; JSON con cuentas, categorías, movimientos, presupuestos y metas. No son un backup restaurable.',
   exportCsv: 'Exportar CSV (movimientos)',
-  exportJson: 'Exportar JSON (cuentas, categorías, movimientos, presupuestos)',
+  exportJson: 'Exportar JSON (cuentas, categorías, movimientos, presupuestos, metas)',
   exportShared: 'Exportación lista para compartir.',
   exportFailed: 'No se pudo preparar la exportación.',
   importTitle: 'Importar CSV',
@@ -402,6 +425,27 @@ const es: Dict = {
   reportsByCategory: 'Gastos por categoría',
   reportsEmpty: 'Sin movimientos categorizados en este mes',
   reportsEmptyBody: 'Elegí otro mes o registrá un movimiento.',
+  goalsTitle: 'Metas',
+  goalsSubtitle: 'Objetivo de ahorro sobre cuentas. Solo descriptivo: progreso derivado del ledger.',
+  goalsEmpty: 'Sin metas todavía',
+  goalsEmptyBody: 'Elegí un nombre, una moneda, un monto objetivo y una o más cuentas.',
+  goalsNewSection: 'Nueva meta (o actualizar)',
+  goalsName: 'Nombre',
+  goalsNamePh: 'Ej: Vacaciones 2026',
+  goalsCurrency: 'Moneda',
+  goalsTarget: 'Monto objetivo',
+  goalsTargetDate: 'Fecha objetivo (opcional)',
+  goalsAccounts: 'Cuentas que aportan',
+  goalsCreate: 'Guardar meta',
+  goalsUpdate: 'Actualizar meta',
+  goalsEdit: 'Editar',
+  goalsProgress: 'Progreso',
+  goalsRemaining: 'Restante',
+  goalsPickAccounts: 'Elegí al menos una cuenta.',
+  goalsNeedPositive: 'El monto objetivo debe ser mayor a cero.',
+  goalsInvalidDate: 'La fecha objetivo debe tener formato AAAA-MM-DD.',
+  goalsNoAccountsForCurrency: 'No hay cuentas en esta moneda.',
+  goalsPickAtLeastOne: 'Seleccioná al menos una cuenta.',
   a11yMinus: 'menos',
   a11yPlus: 'más',
   a11yZero: 'cero',
@@ -478,6 +522,7 @@ const en: Dict = {
   accDelete: 'Delete account',
   accConfirmDelete: 'Tap again to confirm delete',
   accBlockedDelete: 'This account has transactions and cannot be deleted. Balances stay untouched.',
+  accBlockedGoal: 'This account is part of a goal. Edit or delete the goal first.',
   recentIn: (n) => `Recent in this account (${n})`,
   accNoRecent: 'No transactions in this account yet.',
   txsTitle: 'Transactions',
@@ -577,9 +622,9 @@ const en: Dict = {
   moreConfirmErase: 'Tap again to erase everything',
   moreErased: 'All data erased. Default categories were restored.',
   moreExport: 'Export data',
-  moreExportBody: 'CSV for spreadsheets; JSON with accounts, categories, transactions and budgets. Neither is a restorable backup.',
+  moreExportBody: 'CSV for spreadsheets; JSON with accounts, categories, transactions, budgets and goals. Neither is a restorable backup.',
   exportCsv: 'Export CSV (transactions)',
-  exportJson: 'Export JSON (accounts, categories, transactions, budgets)',
+  exportJson: 'Export JSON (accounts, categories, transactions, budgets, goals)',
   exportShared: 'Export ready to share.',
   exportFailed: 'Could not prepare the export.',
   importTitle: 'Import CSV',
@@ -618,6 +663,27 @@ const en: Dict = {
   reportsByCategory: 'Expenses by category',
   reportsEmpty: 'No categorized activity in this month',
   reportsEmptyBody: 'Pick another month or record a transaction.',
+  goalsTitle: 'Goals',
+  goalsSubtitle: 'Savings goal on accounts. Descriptive only: progress derived from the ledger.',
+  goalsEmpty: 'No goals yet',
+  goalsEmptyBody: 'Pick a name, a currency, a target amount and one or more accounts.',
+  goalsNewSection: 'New goal (or update)',
+  goalsName: 'Name',
+  goalsNamePh: 'E.g. Vacation 2026',
+  goalsCurrency: 'Currency',
+  goalsTarget: 'Target amount',
+  goalsTargetDate: 'Target date (optional)',
+  goalsAccounts: 'Accounts that contribute',
+  goalsCreate: 'Save goal',
+  goalsUpdate: 'Update goal',
+  goalsEdit: 'Edit',
+  goalsProgress: 'Progress',
+  goalsRemaining: 'Remaining',
+  goalsPickAccounts: 'Pick at least one account.',
+  goalsNeedPositive: 'The target amount must be greater than zero.',
+  goalsInvalidDate: 'Target date must be in YYYY-MM-DD format.',
+  goalsNoAccountsForCurrency: 'No accounts in this currency.',
+  goalsPickAtLeastOne: 'Select at least one account.',
   a11yMinus: 'minus',
   a11yPlus: 'plus',
   a11yZero: 'zero',

@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { accountBalances } from '../../../src/domain/balances.ts';
-import { deleteAccount, hasPostings, renameAccount } from '../../../src/persistence/repository.ts';
+import { deleteAccount, hasGoalUse, hasPostings, renameAccount } from '../../../src/persistence/repository.ts';
 import { getDb } from '../db';
 import { useLedger } from '../state';
 import { useStrings } from '../lang';
@@ -70,6 +70,10 @@ export default function AccountDetail(): React.JSX.Element {
     if (!armed) {
       if (hasPostings(getDb(), current.id)) {
         setError(t.accBlockedDelete);
+        return;
+      }
+      if (hasGoalUse(getDb(), current.id)) {
+        setError(t.accBlockedGoal);
         return;
       }
       setArmed(true);

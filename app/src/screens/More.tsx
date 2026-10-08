@@ -51,7 +51,7 @@ export default function More(): React.JSX.Element {
       const content =
         kind === 'csv'
           ? transactionsCsv(ledger.transactions, ledger.accounts, ledger.categories)
-          : exportJson(ledger.accounts, ledger.categories, ledger.transactions, ledger.budgets);
+          : exportJson(ledger.accounts, ledger.categories, ledger.transactions, ledger.budgets, ledger.goals);
       Share.share({ message: content, title: kind === 'csv' ? 'moneyfoss-transactions.csv' : 'moneyfoss-export.json' })
         .then((result) => {
           if (result.action === Share.sharedAction) {
@@ -80,6 +80,9 @@ export default function More(): React.JSX.Element {
       </View>
       <View style={{ marginTop: 8 }}>
         <Btn title={t.reportsTitle} onPress={() => navigation.navigate('Reports')} kind="secondary" icon="assessment" />
+      </View>
+      <View style={{ marginTop: 8 }}>
+        <Btn title={t.goalsTitle} onPress={() => navigation.navigate('Goals')} kind="secondary" icon="flag" />
       </View>
       <Divider />
       <Section>{t.moreLanguage}</Section>

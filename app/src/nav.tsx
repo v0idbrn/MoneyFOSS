@@ -22,6 +22,7 @@ import Categories from './screens/Categories';
 import ImportCsv from './screens/ImportCsv';
 import Budgets from './screens/Budgets';
 import Reports from './screens/Reports';
+import Goals from './screens/Goals';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -126,6 +127,7 @@ function RootNavigator(): React.JSX.Element {
         <Stack.Screen name="ImportCsv" component={ImportCsv} options={{ title: t.importTitle, presentation: 'modal' }} />
         <Stack.Screen name="Budgets" component={Budgets} options={{ title: t.budgetsTitle }} />
         <Stack.Screen name="Reports" component={Reports} options={{ title: t.reportsTitle }} />
+        <Stack.Screen name="Goals" component={Goals} options={{ title: t.goalsTitle }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

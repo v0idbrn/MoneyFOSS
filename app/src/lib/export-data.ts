@@ -1,6 +1,6 @@
 import { listCurrencies } from '../../../src/domain/currency.ts';
 import { toWire } from '../../../src/domain/serialize.ts';
-import type { Account, Budget, Category, Transaction } from '../../../src/domain/types.ts';
+import type { Account, Budget, Category, Goal, Transaction } from '../../../src/domain/types.ts';
 import { toCsv } from './csv.ts';
 
 export const TRANSACTIONS_CSV_HEADER: readonly string[] = [
@@ -28,7 +28,7 @@ export const TRANSACTIONS_CSV_HEADER: readonly string[] = [
 ];
 
 export const JSON_EXPORT_FORMAT = 'moneyfoss-export';
-export const JSON_EXPORT_VERSION = 2;
+export const JSON_EXPORT_VERSION = 3;
 
 export function transactionsCsv(
   transactions: readonly Transaction[],
@@ -77,6 +77,7 @@ export function exportJson(
   categories: readonly Category[],
   transactions: readonly Transaction[],
   budgets: readonly Budget[],
+  goals: readonly Goal[],
 ): string {
   return JSON.stringify(
     {
@@ -91,6 +92,14 @@ export function exportJson(
         category_id: budget.categoryId,
         currency: budget.currency,
         amount_minor: budget.amountMinor.toString(),
+      })),
+      goals: goals.map((goal) => ({
+        id: goal.id,
+        name: goal.name,
+        currency: goal.currency,
+        target_minor: goal.targetMinor.toString(),
+        ...(goal.targetDate !== undefined ? { target_date: goal.targetDate } : {}),
+        account_ids: goal.accountIds,
       })),
     },
     null,
