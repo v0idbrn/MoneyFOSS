@@ -359,7 +359,23 @@ Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisi
 
 ---
 
-## CÃ³mo aÃ±adir una decisiÃ³n nueva
+### T-037 â€” AuditorÃ­a de evidencia T-032 (Budgets) y T-035 (Reports) + correcciÃ³n assertBudget
+
+- **Estado:** PROVISIONAL (recomendaciÃ³n de ratificaciÃ³n; no cambia el estatus de T-032/T-035)
+- **Fecha:** 2026-10-08
+- **Contexto:** T-032 (Budgets v1) y T-035 (Reports v1) quedaron en PROVISIONAL tras implementaciÃ³n en host. T-032 lÃ­nea 277 afirmaba que la validaciÃ³n de presupuesto usaba `assertBudget` en `src/domain/validate.ts` â€” auditorÃ­a confirma que **no existe tal funciÃ³n**; la validaciÃ³n vive en `repository.saveBudget` (lÃ­neas 89â€“106) + CHECKs SQL en migraciÃ³n v2. T-035 implementado puro: `lib/reports.ts` con `monthFlowTotals`/`categoryFlowTotals`, derivados, sin escrituras, sin floats, por moneda, excluyendo bridges/transferencias/conversiones sin categorÃ­a.
+- **Evidencia reforzada T-032:**
+  - Moneda explÃ­cita por presupuesto (campo `currency` en schema + UI) â€” implementado y testeado; patrÃ³n coincide con PHASE0 Â§9 ("en una moneda") y Â§643 (agregados por moneda, sin consolidaciÃ³n implÃ­cita).
+  - Periodicidad mensual fija (mes calendario `YYYY-MM` por prefijo ISO; `monthOfDate` en `budgets.ts` + tests de frontera) â€” implementado y testeado; regla mensual por categorÃ­a+moneda segÃºn PHASE0 Â§24.6.
+  - MediciÃ³n = Î£ postings `category_id = categorÃ­a`, `currency = moneda`, `kind = 'normal'`, fecha en mes â€” implementado en `lib/budgets.ts` (`budgetProgress`), tests cubren mes anterior/excluido, multi-moneda, reembolsos restan, transferencias/pagos tarjeta excluidos.
+  - ValidaciÃ³n real: `repository.saveBudget` lÃ­neas 89â€“106 valida `amountMinor > 0`, `category_id` existe, `currency` conocida, idempotencia por `(category_id, currency)`; CHECK SQL `amount_minor > 0` en migraciÃ³n v2; `assertBudget` no existe â€” correcciÃ³n registrada aquÃ­.
+- **Evidencia reforzada T-035:**
+  - `lib/reports.ts`: `monthFlowTotals` (ingresos/gastos/neto por moneda) + `categoryFlowTotals` (gastos por categorÃ­a, signo por `category.kind`).
+  - Solo postings `kind='normal'` **con categorÃ­a**; bridges/transferencias/conversiones sin categorÃ­a excluidos.
+  - Sin floats, sin escrituras, derivados del ledger.
+  - Tests: `tests/reports.test.ts` (meses, monedas, signos, exclusiones, mes invÃ¡lido falla cerrado, mes solo transferencias â†’ filas cero, categorÃ­a vacÃ­a).
+- **RecomendaciÃ³n:** ratificar T-032 y T-035 como DECIDED (la evidencia en host es completa y coherente con PHASE0 Â§9, Â§24.6, Â§614, Â§641, Â§643). Los Ãºnicos puntos pendientes son: prueba en dispositivo (T-019/T-021) y ratificaciÃ³n explÃ­cita del usuario de los tres puntos marcados en T-032 (moneda explÃ­cita, periodicidad mensual, mediciÃ³n).
+- **Evidencia requerida para DECIDED:** ratificaciÃ³n del usuario de los tres puntos de T-032 + T-035 scope; T-019/T-021 cerrados en dispositivo.
 
 ```
 ### T-NNN â€” TÃ­tulo
@@ -371,3 +387,36 @@ Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisi
 - **Evidencia requerida para DECIDED:** ... (si PROVISIONAL)
 - **Pregunta exacta + spike que la resolverÃ­a:** ... (si OPEN)
 ```
+---
+
+### T-038 — Goals: modelo recomendado (OPEN, pendiente ratificación)
+
+- **Estado:** OPEN (recomendación técnica fuerte; sin implementación de schema/UI/types mientras no haya ratificación)
+- **Fecha:** 2026-10-08
+- **Contexto:** PHASE0 §8 línea 136 define `Goal: objetivo de ahorro sobre cuenta(s) o monto, con fecha objetivo`. §24.6: "Budgets/Goals: límites de período, monedas, medición contra postings categorizados". §641 (Q9): progreso de metas = derivado, jamás se escribe en el ledger. §643 (Q10): por defecto series por moneda; consolidado transversal solo con tasa declarada por el usuario. Grep del codebase: **no existe contrato UI ni implementación** para Goals.
+- **Pregunta exacta:** *"¿Cuál es el contrato mínimo de Goal que permite progreso derivado, una sola moneda, sin segunda fuente de verdad, sin FX automático, y es derivable del ledger?"*
+- **Recomendación técnica fuerte (basada en evidencia PHASE0 + código existente):**
+  ```typescript
+  interface Goal {
+    id: string;
+    name: string;
+    currency: string;
+    targetMinor: bigint;
+    targetDate?: string;
+    accountIds: readonly string[];
+  }
+  ```
+  - **Condición invariante:** todos los `accountIds` deben pertenecer a `currency` del Goal (verificación en creación/actualización).
+  - **Progreso (derivado, read-only):** S `balance(accountId, currency)` para cada `accountId` en `accountIds`. Se usa `accountBalances` del dominio — cero escrituras, cero segunda fuente, cero FX.
+  - **Modo "solo monto" (sin cuentas):** NO derivable sin segunda fuente de verdad (¿de qué cuentas sale el progreso?). Se documenta como no viable en este modelo.
+  - **Fecha objetivo:** opcional; si existe, permite proyectar "ritmo necesario" (display-only).
+  - **Multimoneda:** un Goal = una moneda. Varios Goals en distintas monedas son independientes (coherente con Budgets T-032 y Reports T-035).
+- **Trade-offs:**
+  - Ventaja: modelo puro, derivable, extensible (targetDate opcional), coherente con ledger como única verdad.
+  - Costo: exige que el usuario asocie cuentas al Goal (UX extra); no cubre "quiero ahorrar $X sin atar cuentas".
+- **Decisiones abiertas (requieren ratificación del usuario):**
+  1. ¿Se acepta el modelo `accountIds[]` como obligatorio? (¿o se permite modo "monto solo" con otra fuente?)
+  2. ¿`targetDate` es día (`YYYY-MM-DD`) o mes (`YYYY-MM`)? PHASE0 §9 dice "fecha objetivo" (día); Budgets usa mes.
+  3. ¿UI de creación: selector de cuentas multi-select o single-select?
+  4. ¿Persistencia: tabla `goals` propia o reuso de `budgets` extendido? (recomendación: tabla propia — semántica distinta).
+- **Evidencia requerida para DECIDED/PROVISIONAL:** ratificación del usuario de los 4 puntos arriba + decisión de persistencia. Sin ratificación, no se implementa schema/UI/types.
