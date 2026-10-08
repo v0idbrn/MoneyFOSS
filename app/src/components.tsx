@@ -282,7 +282,7 @@ export function TxRow({
       style={({ pressed }) => [styles.row, pressed ? styles.rowPressed : null]}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${view.title}, ${view.detail}`}
+      accessibilityLabel={`${view.title}, ${tx.date}, ${view.detail}, ${view.amounts.map((line) => `${formatDisplayAmount(line.amount, line.currency)} ${line.currency}`).join(', ')}`}
     >
       <View style={styles.rowIcon}>
         <MaterialIcons name={icon} size={22} color={colors.highlight} />
