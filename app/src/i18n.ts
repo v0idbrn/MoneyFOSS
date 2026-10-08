@@ -147,6 +147,7 @@ export interface Dict {
   readonly countsLine: (accounts: number, txs: number, categories: number) => string;
   readonly moreVersion: string;
   readonly moreLanguage: string;
+  readonly langPersistFailed: string;
   readonly moreManageCats: string;
   readonly moreCurrencies: string;
   readonly moreCurrenciesBody: string;
@@ -350,6 +351,7 @@ const es: Dict = {
   countsLine: (accounts, txs, categories) => `${accounts} cuentas · ${txs} movimientos · ${categories} categorías`,
   moreVersion: 'Versión 1.0.0 · Sin red · Sin analítica · Sin nube',
   moreLanguage: 'Idioma',
+  langPersistFailed: 'No se pudo guardar el idioma.',
   moreManageCats: 'Gestionar categorías',
   moreCurrencies: 'Monedas',
   moreCurrenciesBody: 'Los montos se guardan como enteros en las unidades menores de cada moneda.',
@@ -565,6 +567,7 @@ const en: Dict = {
   countsLine: (accounts, txs, categories) => `${accounts} accounts · ${txs} transactions · ${categories} categories`,
   moreVersion: 'Version 1.0.0 · No network · No analytics · No cloud',
   moreLanguage: 'Language',
+  langPersistFailed: 'Could not save the language.',
   moreManageCats: 'Manage categories',
   moreCurrencies: 'Currencies',
   moreCurrenciesBody: "Amounts are stored as integers in each currency's minor units.",

@@ -40,7 +40,10 @@ export default function More(): React.JSX.Element {
 
   function pick(next: Lang): void {
     setArmed(false);
-    setLang(next);
+    const ok = setLang(next);
+    if (!ok) {
+      showToast(t.langPersistFailed, 'error');
+    }
   }
 
   function shareExport(kind: 'csv' | 'json'): void {

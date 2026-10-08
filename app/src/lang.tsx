@@ -6,10 +6,10 @@ import { STRINGS, isLang, type Dict, type Lang } from './i18n';
 export interface LangState {
   readonly lang: Lang;
   readonly t: Dict;
-  readonly setLang: (lang: Lang) => void;
+  readonly setLang: (lang: Lang) => boolean;
 }
 
-const LangContext = createContext<LangState>({ lang: 'es', t: STRINGS.es, setLang: () => {} });
+const LangContext = createContext<LangState>({ lang: 'es', t: STRINGS.es, setLang: () => true });
 
 export function LangProvider({ children }: { children: React.ReactNode }): React.JSX.Element {
   const [lang, setLangState] = useState<Lang>('es');
@@ -23,13 +23,14 @@ export function LangProvider({ children }: { children: React.ReactNode }): React
       /* default language stands */
     }
   }, []);
-  function setLang(next: Lang): void {
+  function setLang(next: Lang): boolean {
     try {
       setSetting(getDb(), 'locale', next);
+      setLangState(next);
+      return true;
     } catch {
-      /* in-memory language still applies */
+      return false;
     }
-    setLangState(next);
   }
   return <LangContext.Provider value={{ lang, t: STRINGS[lang], setLang }}>{children}</LangContext.Provider>;
 }
