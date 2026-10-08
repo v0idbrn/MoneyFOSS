@@ -54,6 +54,9 @@ function checkId(id: string, what: string): void {
 
 export function saveAccount(db: Db, account: Account): void {
   checkId(account.id, 'INVALID_ACCOUNT');
+  if (account.id.startsWith('sys:')) {
+    throw new DomainError('INVALID_ACCOUNT', `account ${JSON.stringify(account.id)} uses reserved namespace`);
+  }
   if (typeof account.name !== 'string' || account.name.length === 0) {
     throw new DomainError('INVALID_ACCOUNT', `account ${JSON.stringify(account.id)} must have a non-empty name`);
   }

@@ -124,6 +124,7 @@ test('invalid accounts and categories are rejected before any write', () => {
     );
     throwsCode(() => saveAccount(db, { id: 'x', name: '', type: 'ASSET', currency: 'ARS' }), 'INVALID_ACCOUNT');
     throwsCode(() => saveAccount(db, { id: 'x', name: 'X', type: 'ASSET', currency: 'XXX' }), 'UNKNOWN_CURRENCY');
+    throwsCode(() => saveAccount(db, { id: 'sys:fx:ars', name: 'X', type: 'ASSET', currency: 'ARS' }), 'INVALID_ACCOUNT');
     throwsCode(() => saveCategory(db, { id: 'y', name: 'Y', kind: 'weird' as never }), 'INVALID_CATEGORY');
     assert.equal(db.query('SELECT COUNT(*) AS c FROM accounts')[0]?.c, 0);
     assert.equal(db.query('SELECT COUNT(*) AS c FROM categories')[0]?.c, 0);
