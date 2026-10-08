@@ -10,6 +10,7 @@ import {
   SYSTEM_INCOME_ID,
   deriveConversionDest,
   fxAccountCurrency,
+  type Goal,
   type LedgerRefs,
   type Posting,
   type Transaction,
@@ -19,7 +20,7 @@ export const ID_MAX_LENGTH = 128;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})$/;
 
-function isValidDate(text: string): boolean {
+export function isValidDate(text: string): boolean {
   if (!DATE_RE.test(text)) {
     return false;
   }
@@ -272,6 +273,63 @@ export function findTransactionProblems(tx: Transaction, refs: LedgerRefs): stri
   checkConversion(tx, bridges, problems);
 
   return problems;
+}
+
+export function findGoalProblems(goal: Goal, refs: LedgerRefs): string[] {
+  const problems: string[] = [];
+  const tag = typeof goal.id === 'string' && goal.id.length > 0 ? `goal ${goal.id}` : 'goal <no id>';
+
+  if (typeof goal.id !== 'string' || goal.id.length === 0 || goal.id.length > ID_MAX_LENGTH) {
+    problems.push(`${tag}: id must be a non-empty string of at most ${ID_MAX_LENGTH} characters`);
+  }
+  if (typeof goal.name !== 'string' || goal.name.length === 0) {
+    problems.push(`${tag}: name must be a non-empty string`);
+  }
+  if (!isKnownCurrency(goal.currency)) {
+    problems.push(`${tag}: unknown currency ${JSON.stringify(goal.currency)}`);
+  }
+  if (typeof goal.targetMinor !== 'bigint' || goal.targetMinor <= 0n) {
+    problems.push(`${tag}: targetMinor must be a positive integer of minor units, got ${String(goal.targetMinor)}`);
+  } else if (goal.targetMinor < INT64_MIN || goal.targetMinor > INT64_MAX) {
+    problems.push(`${tag}: targetMinor ${goal.targetMinor} is outside the int64 range`);
+  }
+  if (goal.targetDate !== undefined) {
+    if (typeof goal.targetDate !== 'string' || !isValidDate(goal.targetDate)) {
+      problems.push(`${tag}: targetDate must be a valid YYYY-MM-DD date, got ${JSON.stringify(goal.targetDate)}`);
+    }
+  }
+  if (!Array.isArray(goal.accountIds) || goal.accountIds.length === 0) {
+    problems.push(`${tag}: accountIds must be a non-empty array`);
+  } else {
+    const seen = new Set<string>();
+    for (const accountId of goal.accountIds) {
+      if (typeof accountId !== 'string' || accountId.length === 0) {
+        problems.push(`${tag}: accountIds must contain non-empty strings`);
+        break;
+      }
+      if (seen.has(accountId)) {
+        problems.push(`${tag}: accountIds must not contain duplicates`);
+        break;
+      }
+      seen.add(accountId);
+      const account = refs.accounts.get(accountId);
+      if (!account) {
+        problems.push(`${tag}: unknown account ${JSON.stringify(accountId)}`);
+      } else if (account.currency !== goal.currency) {
+        problems.push(`${tag}: account ${JSON.stringify(accountId)} is in ${account.currency} but goal currency is ${goal.currency}`);
+      }
+    }
+  }
+
+  return problems;
+}
+
+export function assertGoal(goal: Goal, refs: LedgerRefs): Goal {
+  const problems = findGoalProblems(goal, refs);
+  if (problems.length > 0) {
+    throw new DomainError('INVALID_GOAL', `goal failed validation:\n- ${problems.join('\n- ')}`);
+  }
+  return goal;
 }
 
 export function assertTransaction(tx: Transaction, refs: LedgerRefs): Transaction {

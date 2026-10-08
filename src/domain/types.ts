@@ -47,6 +47,19 @@ export function budgetId(categoryId: string, currency: string): string {
   return `${categoryId}@${currency}`;
 }
 
+export interface Goal {
+  readonly id: string;
+  readonly name: string;
+  readonly currency: string;
+  readonly targetMinor: bigint;
+  readonly targetDate?: string;
+  readonly accountIds: readonly string[];
+}
+
+export function goalId(name: string, currency: string): string {
+  return `goal-${currency}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`;
+}
+
 export interface Posting {
   readonly accountId: string;
   readonly currency: string;

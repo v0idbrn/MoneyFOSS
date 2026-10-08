@@ -1,10 +1,10 @@
 import { DomainError } from '../domain/errors.ts';
 import { getCurrency } from '../domain/currency.ts';
 import { assertInt64 } from '../domain/money.ts';
-import { ID_MAX_LENGTH, assertTransaction } from '../domain/validate.ts';
+import { ID_MAX_LENGTH, assertTransaction, assertGoal } from '../domain/validate.ts';
 import type { Db, DbRow } from './db.ts';
-import type { Account, Budget, Category, Conversion, LedgerRefs, Posting, Transaction } from '../domain/types.ts';
-import { budgetId } from '../domain/types.ts';
+import type { Account, Budget, Category, Conversion, Goal, LedgerRefs, Posting, Transaction } from '../domain/types.ts';
+import { budgetId, goalId } from '../domain/types.ts';
 
 const CANONICAL_INT_RE = /^-?(0|[1-9]\d*)$/;
 const POSITIVE_INT_RE = /^[1-9]\d*$/;
@@ -292,9 +292,17 @@ export function hasPostings(db: Db, accountId: string): boolean {
   return rows.length > 0;
 }
 
+export function hasGoalUse(db: Db, accountId: string): boolean {
+  const rows = db.query('SELECT 1 FROM goal_accounts WHERE account_id = ? LIMIT 1', [accountId]);
+  return rows.length > 0;
+}
+
 export function deleteAccount(db: Db, accountId: string): void {
   if (hasPostings(db, accountId)) {
     throw new DomainError('ACCOUNT_HAS_POSTINGS', `account ${JSON.stringify(accountId)} has postings and cannot be deleted`);
+  }
+  if (hasGoalUse(db, accountId)) {
+    throw new DomainError('ACCOUNT_IN_GOAL', `account ${JSON.stringify(accountId)} is used by a goal; edit or remove the goal first`);
   }
   const rows = db.query('SELECT id FROM accounts WHERE id = ?', [accountId]);
   if (rows.length === 0) {
@@ -350,6 +358,64 @@ export function deleteTransaction(db: Db, id: string): void {
     db.exec('DELETE FROM postings WHERE transaction_id = ?', [id]);
     db.exec('DELETE FROM conversions WHERE transaction_id = ?', [id]);
     db.exec('DELETE FROM transactions WHERE id = ?', [id]);
+  });
+}
+
+function mapGoal(db: Db, row: DbRow): Goal {
+  const goalId = rowString(row, 'id', 'goals');
+  const accountRows = db.query('SELECT account_id FROM goal_accounts WHERE goal_id = ?', [goalId]);
+  const accountIds = accountRows.map((r) => rowString(r, 'account_id', 'goal_accounts'));
+  return {
+    id: goalId,
+    name: rowString(row, 'name', 'goals'),
+    currency: rowString(row, 'currency', 'goals'),
+    targetMinor: parsePositiveInt(rowString(row, 'target_minor', 'goals'), 'goals.target_minor'),
+    accountIds,
+    ...(rowStringOrNull(row, 'target_date', 'goals') !== null
+      ? { targetDate: rowString(row, 'target_date', 'goals') }
+      : {}),
+  };
+}
+
+export function saveGoal(db: Db, goal: Goal): void {
+  assertGoal(goal, loadRefs(db));
+  db.transaction(() => {
+    db.exec('INSERT OR REPLACE INTO goals (id, name, currency, target_minor, target_date) VALUES (?, ?, ?, ?, ?)', [
+      goal.id,
+      goal.name,
+      goal.currency,
+      goal.targetMinor.toString(),
+      goal.targetDate ?? null,
+    ]);
+    db.exec('DELETE FROM goal_accounts WHERE goal_id = ?', [goal.id]);
+    for (const accountId of goal.accountIds) {
+      db.exec('INSERT INTO goal_accounts (goal_id, account_id) VALUES (?, ?)', [goal.id, accountId]);
+    }
+  });
+}
+
+export function listGoals(db: Db): Goal[] {
+  return db.query('SELECT id, name, currency, target_minor, target_date FROM goals ORDER BY rowid')
+    .map((row) => mapGoal(db, row));
+}
+
+export function getGoal(db: Db, id: string): Goal {
+  const rows = db.query('SELECT id, name, currency, target_minor, target_date FROM goals WHERE id = ?', [id]);
+  const row = rows[0];
+  if (row === undefined) {
+    throw new DomainError('UNKNOWN_GOAL', `goal ${JSON.stringify(id)} not found`);
+  }
+  return mapGoal(db, row);
+}
+
+export function deleteGoal(db: Db, id: string): void {
+  const rows = db.query('SELECT id FROM goals WHERE id = ?', [id]);
+  if (rows.length === 0) {
+    throw new DomainError('UNKNOWN_GOAL', `goal ${JSON.stringify(id)} not found`);
+  }
+  db.transaction(() => {
+    db.exec('DELETE FROM goal_accounts WHERE goal_id = ?', [id]);
+    db.exec('DELETE FROM goals WHERE id = ?', [id]);
   });
 }
 

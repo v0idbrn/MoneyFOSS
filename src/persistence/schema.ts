@@ -1,4 +1,4 @@
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export interface Migration {
   readonly version: number;
@@ -63,7 +63,23 @@ const V2_STATEMENTS: readonly string[] = [
   )`,
 ];
 
+const V3_STATEMENTS: readonly string[] = [
+  `CREATE TABLE goals (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL CHECK (length(name) > 0),
+    currency TEXT NOT NULL CHECK (length(currency) > 0),
+    target_minor TEXT NOT NULL CHECK (target_minor GLOB '[1-9]*' AND target_minor NOT GLOB '*[^0-9]*'),
+    target_date TEXT CHECK (target_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]')
+  )`,
+  `CREATE TABLE goal_accounts (
+    goal_id TEXT NOT NULL REFERENCES goals(id) ON DELETE CASCADE,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    PRIMARY KEY (goal_id, account_id)
+  )`,
+];
+
 export const MIGRATIONS: readonly Migration[] = [
   { version: 1, name: 'initial-ledger-schema', statements: V1_STATEMENTS },
   { version: 2, name: 'budgets-table', statements: V2_STATEMENTS },
+  { version: 3, name: 'goals-table', statements: V3_STATEMENTS },
 ];
