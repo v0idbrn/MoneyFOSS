@@ -267,3 +267,59 @@ test('import plan validation runs before any write: an invalid plan never mutate
   assert.throws(() => applyImport(db, evil), /unknown account/);
   assert.deepEqual(wiresOf(db), demoTransactions().map((tx) => stableStringify(toWire(tx))));
 });
+
+test('position > 6 digits is rejected', () => {
+  const target = openTestDb();
+  seedStandardRefs(target);
+  const csv = pairedExpenseCsv({ position: '1000000' });
+  const plan = planImport(csv, { refs: loadRefs(target), transactions: listTransactions(target) });
+  assert.equal(plan.rejected.length, 1);
+  assert.equal(plan.rejected[0]?.reason, 'bad-row');
+  assert.match(plan.rejected[0]?.detail ?? '', /position must be an integer of at most 6 digits/);
+});
+
+test('duplicate positions inside a transaction are rejected', () => {
+  const target = openTestDb();
+  seedStandardRefs(target);
+  const csv = handCsv(
+    cells({ position: '0', account_id: 'bank-ars', amount_minor: '-1000' }),
+    cells({ position: '0', account_id: 'sys:expense', amount_minor: '1000', category_id: 'cat:food', category_name: 'Comida' }),
+    cells({ tx_id: 'hand2', position: '0', account_id: 'bank-ars', amount_minor: '-1000' }),
+    cells({ tx_id: 'hand2', position: '0', account_id: 'sys:expense', amount_minor: '1000', category_id: 'cat:food', category_name: 'Comida' }),
+  );
+  const plan = planImport(csv, { refs: loadRefs(target), transactions: listTransactions(target) });
+  assert.ok(plan.rejected.some((entry) => entry.reason === 'bad-row' && entry.detail.includes('duplicate posting position')));
+});
+
+test('amount int64 overflow is rejected', () => {
+  const target = openTestDb();
+  seedStandardRefs(target);
+  const csv = pairedExpenseCsv({ amount_minor: '9223372036854775808' });
+  const plan = planImport(csv, { refs: loadRefs(target), transactions: listTransactions(target) });
+  assert.equal(plan.rejected.length, 1);
+  assert.equal(plan.rejected[0]?.reason, 'invalid-transaction');
+});
+
+test('unicode memo round-trips through CSV', () => {
+  const source = seedDbWithDemo();
+  const txWithUnicode = expense({
+    refs,
+    id: 'unicode1',
+    date: TODAY,
+    account: acct('bank-ars'),
+    amount: money(123456n, 'ARS'),
+    category: cat('food'),
+    memo: 'café 🍵 中文 \u00A0\t\n',
+  });
+  saveTransaction(source, txWithUnicode);
+  const csv = transactionsCsv(listTransactions(source), listAccounts(source), listCategories(source));
+
+  const target = openTestDb();
+  seedStandardRefs(target);
+  const plan = planImport(csv, { refs: loadRefs(target), transactions: listTransactions(target) });
+  assert.equal(plan.rejected.length, 0, JSON.stringify(plan.rejected));
+  applyImport(target, plan);
+  const imported = listTransactions(target).find((tx) => tx.id === 'unicode1');
+  assert.ok(imported);
+  assert.equal(imported.memo, 'café 🍵 中文 \u00A0\t\n');
+});

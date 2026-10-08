@@ -7,7 +7,7 @@ import { TRANSACTIONS_CSV_HEADER } from './export-data.ts';
 import { parseCsv } from './csv.ts';
 
 const AMOUNT_RE = /^-?(0|[1-9]\d*)$/;
-const POSITION_RE = /^(0|[1-9]\d*){1,6}$/;
+const POSITION_RE = /^(?:0|[1-9][0-9]{0,5})$/;
 const ACCOUNT_TYPES = ['ASSET', 'LIABILITY', 'EQUITY'];
 const CONV_COLUMNS = ['conv_from', 'conv_to', 'conv_rate_text', 'conv_rate_num', 'conv_rate_den', 'conv_quote_direction', 'conv_rate_at', 'conv_source', 'conv_rounding'];
 
