@@ -50,14 +50,24 @@ export default function Accounts(): React.JSX.Element {
       setError(t.needName);
       return;
     }
-    try {
-      const db = getDb();
-      const account: Account = { id: newAccountId(), name: name.trim(), type: kind, currency };
-      saveAccount(db, account);
+    const db = getDb();
+    let parsedOpening: { amount: bigint; currency: string } | null = null;
+    if (opening.trim() !== '') {
       const openingText = normalizeAmountInput(opening);
       if (openingText !== '') {
-        const parsed = parseMoney(openingText, currency);
-        if (parsed.amount !== 0n) {
+        try {
+          parsedOpening = parseMoney(openingText, currency);
+        } catch {
+          setError(t.needAmount);
+          return;
+        }
+      }
+    }
+    try {
+      db.transaction(() => {
+        const account: Account = { id: newAccountId(), name: name.trim(), type: kind, currency };
+        saveAccount(db, account);
+        if (parsedOpening !== null && parsedOpening.amount !== 0n) {
           const equity = ensureOpeningAccount(db, currency);
           const refs = loadRefs(db);
           const openingTx = openingBalance({
@@ -66,12 +76,12 @@ export default function Accounts(): React.JSX.Element {
             date: todayLocal(),
             memo: 'Opening balance',
             account,
-            amount: parsed,
+            amount: parsedOpening,
             equityAccount: equity,
           });
           saveTransaction(db, openingTx);
         }
-      }
+      });
       setName('');
       setOpening('');
       setError('');
