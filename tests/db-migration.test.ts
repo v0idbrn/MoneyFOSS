@@ -12,9 +12,9 @@ import { MIGRATIONS } from '../src/persistence/schema.ts';
 test('migrate is idempotent', () => {
   const db = openNodeDb(':memory:');
   try {
-    assert.equal(migrate(db), 2);
-    assert.equal(migrate(db), 2);
-    assert.equal(getSchemaVersion(db), 2);
+    assert.equal(migrate(db), 3);
+    assert.equal(migrate(db), 3);
+    assert.equal(getSchemaVersion(db), 3);
   } finally {
     db.close();
   }
@@ -24,7 +24,7 @@ test('future schema version is refused without touching data', () => {
   const db = openTestDb();
   try {
     db.exec("INSERT OR REPLACE INTO schema_meta (key, value) VALUES ('version', '99')");
-    throwsCode(() => migrate(db), 'SCHEMA_VERSION_MISMATCH', 'newer than supported 2');
+    throwsCode(() => migrate(db), 'SCHEMA_VERSION_MISMATCH', 'newer than supported 3');
     assert.equal(getSchemaVersion(db), 99);
   } finally {
     db.close();

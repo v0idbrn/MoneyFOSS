@@ -7,7 +7,7 @@ import { money } from '../src/domain/money.ts';
 import { CSV_MAX_INPUT, parseCsv, toCsv, toCsvCell } from '../app/src/lib/csv.ts';
 import { JSON_EXPORT_FORMAT, JSON_EXPORT_VERSION, TRANSACTIONS_CSV_HEADER, exportJson, transactionsCsv } from '../app/src/lib/export-data.ts';
 import { RATE_1180, TODAY, acct, cat, refs } from './fixtures.ts';
-import type { Account, Budget, Category, LedgerRefs, Transaction } from '../src/domain/types.ts';
+import type { Account, Budget, Category, Goal, LedgerRefs, Transaction } from '../src/domain/types.ts';
 import { budgetId } from '../src/domain/types.ts';
 
 function demoTransactions(): Transaction[] {
@@ -97,7 +97,10 @@ test('json export declares its own format and every transaction re-validates thr
   const categories = [...refs.categories.values()];
   const txs = demoTransactions();
   const budgets: Budget[] = [{ id: budgetId('food', 'ARS'), categoryId: 'food', currency: 'ARS', amountMinor: 100000n }];
-  const parsed = JSON.parse(exportJson(accounts, categories, txs, budgets)) as {
+  const goals: Goal[] = [
+    { id: 'goal-ars-vacation', name: 'Vacation', currency: 'ARS', targetMinor: 5000000n, targetDate: '2026-12-31', accountIds: ['bank-ars', 'cash-ars'] },
+  ];
+  const parsed = JSON.parse(exportJson(accounts, categories, txs, budgets, goals)) as {
     format: string;
     version: number;
     currencies: { code: string; exponent: number }[];
@@ -105,6 +108,7 @@ test('json export declares its own format and every transaction re-validates thr
     categories: Category[];
     transactions: unknown[];
     budgets: { id: string; category_id: string; currency: string; amount_minor: string }[];
+    goals: { id: string; name: string; currency: string; target_minor: string; target_date?: string; account_ids: string[] }[];
   };
 
   assert.equal(parsed.format, JSON_EXPORT_FORMAT);
@@ -114,6 +118,9 @@ test('json export declares its own format and every transaction re-validates thr
   assert.equal(parsed.categories.length, categories.length);
   assert.equal(parsed.transactions.length, txs.length);
   assert.deepEqual(parsed.budgets, [{ id: 'food@ARS', category_id: 'food', currency: 'ARS', amount_minor: '100000' }]);
+  assert.deepEqual(parsed.goals, [
+    { id: 'goal-ars-vacation', name: 'Vacation', currency: 'ARS', target_minor: '5000000', target_date: '2026-12-31', account_ids: ['bank-ars', 'cash-ars'] },
+  ]);
 
   const rebuilt = refsFrom(parsed.accounts, parsed.categories);
   parsed.transactions.forEach((wire, index) => {

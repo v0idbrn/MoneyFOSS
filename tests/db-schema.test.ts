@@ -5,14 +5,14 @@ import { getSchemaVersion, migrate } from '../src/persistence/migrate.ts';
 import { SCHEMA_VERSION } from '../src/persistence/schema.ts';
 import { openTestDb, tableNames } from './db-fixtures.ts';
 
-test('fresh database migrates to version 2 with all tables', () => {
+test('fresh database migrates to version 3 with all tables', () => {
   const db = openNodeDb(':memory:');
   try {
     assert.equal(getSchemaVersion(db), 0);
-    assert.equal(migrate(db), 2);
-    assert.equal(getSchemaVersion(db), 2);
-    assert.equal(SCHEMA_VERSION, 2);
-    for (const expected of ['accounts', 'budgets', 'categories', 'conversions', 'postings', 'schema_meta', 'transactions']) {
+    assert.equal(migrate(db), 3);
+    assert.equal(getSchemaVersion(db), 3);
+    assert.equal(SCHEMA_VERSION, 3);
+    for (const expected of ['accounts', 'budgets', 'categories', 'conversions', 'goal_accounts', 'goals', 'postings', 'schema_meta', 'transactions']) {
       assert.ok(tableNames(db).includes(expected), `missing table ${expected}`);
     }
   } finally {
