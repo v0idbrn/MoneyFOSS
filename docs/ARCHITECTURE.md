@@ -72,7 +72,7 @@ Pantallas: Home, Accounts, AccountDetail, Transactions, TransactionDetail, AddTr
 ## 5. Verificación
 
 ```powershell
-npm test          # node --test "tests/*.test.ts" (161 tests: dominio + persistencia + presentación + import/export + budgets + reports)
+npm test          # node --test "tests/*.test.ts" (178 tests: dominio + persistencia + presentación + import/export + budgets + reports + goals)
 npm run typecheck # tsc --noEmit (strict + erasableSyntaxOnly)
 ```
 

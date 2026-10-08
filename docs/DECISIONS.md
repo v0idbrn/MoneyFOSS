@@ -389,13 +389,13 @@ Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisi
 ```
 ---
 
-### T-038 � Goals: modelo recomendado (OPEN, pendiente ratificaci�n)
+### T-038 — Goals: modelo recomendado (OPEN, pendiente ratificación)
 
-- **Estado:** OPEN (recomendaci�n t�cnica fuerte; sin implementaci�n de schema/UI/types mientras no haya ratificaci�n)
+- **Estado:** OPEN (recomendación técnica fuerte; sin implementación de schema/UI/types mientras no haya ratificación)
 - **Fecha:** 2026-10-08
-- **Contexto:** PHASE0 �8 l�nea 136 define `Goal: objetivo de ahorro sobre cuenta(s) o monto, con fecha objetivo`. �24.6: "Budgets/Goals: l�mites de per�odo, monedas, medici�n contra postings categorizados". �641 (Q9): progreso de metas = derivado, jam�s se escribe en el ledger. �643 (Q10): por defecto series por moneda; consolidado transversal solo con tasa declarada por el usuario. Grep del codebase: **no existe contrato UI ni implementaci�n** para Goals.
-- **Pregunta exacta:** *"�Cu�l es el contrato m�nimo de Goal que permite progreso derivado, una sola moneda, sin segunda fuente de verdad, sin FX autom�tico, y es derivable del ledger?"*
-- **Recomendaci�n t�cnica fuerte (basada en evidencia PHASE0 + c�digo existente):**
+- **Contexto:** PHASE0 §8 línea 136 define `Goal: objetivo de ahorro sobre cuenta(s) o monto, con fecha objetivo`. §24.6: "Budgets/Goals: límites de período, monedas, medición contra postings categorizados". §641 (Q9): progreso de metas = derivado, jamás se escribe en el ledger. §643 (Q10): por defecto series por moneda; consolidado transversal solo con tasa declarada por el usuario. Grep del codebase: **no existe contrato UI ni implementación** para Goals.
+- **Pregunta exacta:** *"¿Cuál es el contrato mínimo de Goal que permite progreso derivado, una sola moneda, sin segunda fuente de verdad, sin FX automático, y es derivable del ledger?"*
+- **Recomendación técnica fuerte (basada en evidencia PHASE0 + código existente):***
   ```typescript
   interface Goal {
     id: string;
@@ -406,17 +406,66 @@ Cada entrada lista opciones, trade-offs y la evidencia que falta. Ninguna decisi
     accountIds: readonly string[];
   }
   ```
-  - **Condici�n invariante:** todos los `accountIds` deben pertenecer a `currency` del Goal (verificaci�n en creaci�n/actualizaci�n).
-  - **Progreso (derivado, read-only):** S `balance(accountId, currency)` para cada `accountId` en `accountIds`. Se usa `accountBalances` del dominio � cero escrituras, cero segunda fuente, cero FX.
-  - **Modo "solo monto" (sin cuentas):** NO derivable sin segunda fuente de verdad (�de qu� cuentas sale el progreso?). Se documenta como no viable en este modelo.
+  - **Condición invariante:** todos los `accountIds` deben pertenecer a `currency` del Goal (verificación en creación/actualización).
+  - **Progreso (derivado, read-only):** Σ `balance(accountId, currency)` para cada `accountId` en `accountIds`. Se usa `accountBalances` del dominio — cero escrituras, cero segunda fuente, cero FX.
+  - **Modo "solo monto" (sin cuentas):** NO derivable sin segunda fuente de verdad (¿de qué cuentas sale el progreso?). Se documenta como no viable en este modelo.
   - **Fecha objetivo:** opcional; si existe, permite proyectar "ritmo necesario" (display-only).
   - **Multimoneda:** un Goal = una moneda. Varios Goals en distintas monedas son independientes (coherente con Budgets T-032 y Reports T-035).
 - **Trade-offs:**
-  - Ventaja: modelo puro, derivable, extensible (targetDate opcional), coherente con ledger como �nica verdad.
+  - Ventaja: modelo puro, derivable, extensible (targetDate opcional), coherente con ledger como única verdad.
   - Costo: exige que el usuario asocie cuentas al Goal (UX extra); no cubre "quiero ahorrar $X sin atar cuentas".
-- **Decisiones abiertas (requieren ratificaci�n del usuario):**
-  1. �Se acepta el modelo `accountIds[]` como obligatorio? (�o se permite modo "monto solo" con otra fuente?)
-  2. �`targetDate` es d�a (`YYYY-MM-DD`) o mes (`YYYY-MM`)? PHASE0 �9 dice "fecha objetivo" (d�a); Budgets usa mes.
-  3. �UI de creaci�n: selector de cuentas multi-select o single-select?
-  4. �Persistencia: tabla `goals` propia o reuso de `budgets` extendido? (recomendaci�n: tabla propia � sem�ntica distinta).
-- **Evidencia requerida para DECIDED/PROVISIONAL:** ratificaci�n del usuario de los 4 puntos arriba + decisi�n de persistencia. Sin ratificaci�n, no se implementa schema/UI/types.
+- **Decisiones abiertas (requieren ratificación del usuario):**
+  1. ¿Se acepta el modelo `accountIds[]` como obligatorio? (¿o se permite modo "monto solo" con otra fuente?)
+  2. ¿`targetDate` es día (`YYYY-MM-DD`) o mes (`YYYY-MM`)? PHASE0 §9 dice "fecha objetivo" (día); Budgets usa mes.
+  3. ¿UI de creación: selector de cuentas multi-select o single-select?
+  4. ¿Persistencia: tabla `goals` propia o reuso de `budgets` extendido? (recomendación: tabla propia — semántica distinta).
+- **Evidencia requerida para DECIDED/PROVISIONAL:** ratificación del usuario de los 4 puntos arriba + decisión de persistencia. Sin ratificación, no se implementa schema/UI/types.
+
+---
+
+### T-039 — Ratificación T-032: Budgets v1 pasa a DECIDED
+
+- **Estado:** DECIDED
+- **Fecha:** 2026-10-08
+- **SUPERSEDE:** estatus PROVISIONAL de T-032 (el texto de T-032 se conserva como historial).
+- **Ratificación del usuario (misión decision-gate):**
+  1. Cada Budget tiene moneda explícita — CONFIRMADO.
+  2. La periodicidad de Budget es mensual fija (`YYYY-MM` por prefijo ISO) — CONFIRMADO.
+  3. La medición es Σ postings con `category_id = categoría`, `currency = moneda`, `kind = 'normal'`, fecha dentro del mes — CONFIRMADO. Semántica: expense suma positivo, income invierte signo por categoría, refunds restan, transferencias/pagos/conversiones sin categoría no participan, budgets nunca son ledger truth.
+- **Corrección documental (estado real de export):** T-032 listaba "presupuestos en export CSV/JSON" como deuda pendiente. Estado real: JSON `moneyfoss-export` v2 incluye `budgets[]` (T-034); el CSV de transacciones NO incluye budgets (representa transacciones, una fila por posting; mezclar entidades rompería el contrato). CSV queda explícitamente fuera de alcance.
+- **Evidencia:** schema v2 + `repository.saveBudget` (validación) + CHECKs SQL + `lib/budgets.ts` (`budgetProgress`) + `tests/budgets.test.ts` + pantalla Budgets. Suite verde en host.
+- **NO evidencia (sin cambios):** prueba en dispositivo (T-019/T-021).
+
+---
+
+### T-040 — Ratificación T-035: Reports v1 pasa a DECIDED
+
+- **Estado:** DECIDED
+- **Fecha:** 2026-10-08
+- **SUPERSEDE:** estatus PROVISIONAL de T-035 (el texto de T-035 se conserva como historial).
+- **Ratificación del usuario (misión decision-gate):** Reports v1 = resumen mensual por moneda (ingresos, gastos, neto) + gastos por categoría con nombres traducidos; refunds respetados; transferencias, bridges y conversiones sin categoría excluidas — CONFIRMADO.
+- **Fuera de Reports v1 (registrado, no olvidado):** charts, consolidación FX transversal, export de reportes, drill-down, histórico multi-mes, porcentajes.
+- **Evidencia:** `lib/reports.ts` puro (`monthFlowTotals`/`categoryFlowTotals`) + `tests/reports.test.ts` (meses, monedas, signos, exclusiones, mes solo-transferencias → cero filas, mes inválido falla cerrado) + pantalla Reports. Cero escrituras, cero floats, derivado del ledger. Suite verde en host.
+- **NO evidencia (sin cambios):** prueba en dispositivo (T-019/T-021).
+
+---
+
+### T-041 — Goals v1 implementados según ratificación T-038 (Fase 5)
+
+- **Estado:** PROVISIONAL (implementado y testeado en host; runtime en dispositivo pendiente como el resto de la app)
+- **Fecha:** 2026-10-08
+- **SUPERSEDE:** estatus OPEN del modelo en T-038 (las 4 preguntas quedan cerradas por ratificación; el texto de T-038 se conserva como historial).
+- **Ratificación aplicada:**
+  1. `accountIds[]` obligatorio. No existe modo "monto solo", no existe segunda fuente de verdad.
+  2. `targetDate` día `YYYY-MM-DD`, opcional.
+  3. Un Goal permite múltiples cuentas (UI multi-select por chips).
+  4. Tabla/persistencia propia (`goals` + `goal_accounts`); budgets no se toca.
+- **Implementación:**
+  - Dominio: `Goal { id, name, currency, targetMinor, targetDate?, accountIds[] }` + `goalId()` + `assertGoal`/`findGoalProblems` (id, nombre, moneda conocida, `targetMinor > 0` int64, `targetDate` válida, `accountIds` no vacío sin duplicados, cuentas existentes todas en `Goal.currency`).
+  - Persistencia: migración v3 (`goals` + `goal_accounts` con FK `ON DELETE CASCADE` en ambas direcciones); `SCHEMA_VERSION = 3`.
+  - Repository: `saveGoal` (valida + escribe goal y relaciones en una transacción), `getGoal`, `listGoals`, `deleteGoal` (borra relaciones + goal, nunca cuentas). `deleteAccount` bloquea con `ACCOUNT_IN_GOAL` si la cuenta pertenece a un Goal (check previo localizado en AccountDetail).
+  - Progreso derivado: `goalProgress` (Σ balances de `accountIds` en `Goal.currency` vía `accountBalances`); `remaining = target − progress` (puede ser negativo); `percentage` solo display, nunca persistido.
+  - UI: pantalla Goals (listar/crear/editar/eliminar, selector de moneda, monto, fecha opcional, multi-select de cuentas filtradas por moneda, moneda bloqueada al editar); entrada en Más; progreso/target/remaining/fecha/cuentas por goal.
+  - Export: JSON `moneyfoss-export` v3 agrega `goals[]` (`id`, `name`, `currency`, `target_minor` string, `target_date?`, `account_ids[]`). Sin importador JSON (export de solo salida, como budgets): restore entra únicamente por `.moneybackup` (T-010). CSV de transacciones sin cambios (representa transacciones).
+- **Evidencia:** `tests/goals.test.ts` (CRUD, validación, multi-cuenta, negativo, over-target, aislamiento por moneda, `getGoal`, atomicidad de update fallido, bloqueo de borrado de cuenta, round-trip JSON) + `tests/export.test.ts` (`goals[]` exacto); suite 178/178 + typechecks en 0 (raíz + app).
+- **NO evidencia:** prueba en dispositivo (T-019/T-021).

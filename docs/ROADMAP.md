@@ -48,15 +48,16 @@
 - [x] Categories (list by kind, CRUD, usage counts)
 - [x] More (About, Currencies, Erase all, Export, Import)
 - [x] ImportCsv (analyze → preview → confirm, nada escrito hasta confirmar)
-- [x] Budgets (crear/eliminar límite mensual categoría+moneda, medido desde el ledger)
-- [x] Reports (resumen mensual por moneda + gastos por categoría, solo lectura)
+- [x] Budgets (crear/eliminar límite mensual categoría+moneda, medido desde el ledger) — T-039 DECIDED
+- [x] Reports (resumen mensual por moneda + gastos por categoría, solo lectura) — T-040 DECIDED
+- [x] Goals (crear/editar/eliminar meta cuenta+moneda, progreso derivado del ledger, JSON export v3) — T-041
 
 ### Domain & Persistence
 - [x] Currency, Money, Account, Transaction, Posting, Category
 - [x] Domain validation (invariants, balance rules, multicurrency)
 - [x] Conversion logic with exact re-derivation
 - [x] 138 tests passing, typecheck passing
-- [x] SQLite schema v2 with migrations (v1 + budgets)
+- [x] SQLite schema v3 with migrations (v1 + budgets + goals)
 - [x] Repository layer (CRUD + validation)
 - [x] Production build pipeline (R8, shrinkResources, release signing)
 
@@ -151,7 +152,6 @@
 
 | Feature | Reason |
 |---------|--------|
-| Goals | Modelo OPEN (PHASE0 §9, una línea); pendiente de ratificación del patrón de T-032 antes de diseñar |
 | Recurring Transactions | UX OPEN (no inventar frecuencias/edición) |
 | Charts | T-035 dejó reports v1 sin charts; dibujado propio/lib pendiente de ratificación |
 | Credit Cards | Requires P1 Planning |
@@ -193,8 +193,9 @@
 6. ~~**Error Handling UI**~~ Done — hints, gate retry
 7. ~~**Sort indicators / loading states de lista**~~ descartado (YAGNI): reads son síncronos, el orden ya es estable; sin evidencia de necesidad
 8. ~~**Import/Export CSV+JSON**~~ Done — Share sheet de export, ImportCsv con preview → confirm → commit atómico (T-031)
-9. **Budgets v1** (Fase 5) — Done en host: schema v2, regla mensual categoría+moneda, medición desde postings, pantalla Budgets con crear/eliminar; T-032 PROVISIONAL (pendiente ratificación de moneda explícita + periodicidad mensual y prueba en dispositivo)
-10. ~~**Reports v1** (Fase 6)~~ Done en host — `lib/reports` + pantalla Reports (mes anterior/siguiente, totales ingreso/gasto/neto por moneda, gastos por categoría); T-035 PROVISIONAL (sin charts, sin consolidado FX)
+9. ~~**Budgets v1** (Fase 5)~~ Done — schema v2, regla mensual categoría+moneda, medición desde postings, pantalla Budgets con crear/eliminar; T-039 DECIDED (ratificación de moneda explícita + periodicidad mensual + medición)
+10. ~~**Reports v1** (Fase 6)~~ Done — `lib/reports` + pantalla Reports (mes anterior/siguiente, totales ingreso/gasto/neto por moneda, gastos por categoría); T-040 DECIDED (sin charts, sin consolidado FX)
+11. ~~**Goals v1** (Fase 5)~~ Done en host — `Goal` + tabla propia `goals`/`goal_accounts` (schema v3), progreso derivado Σ balances, pantalla Goals (crear/editar/eliminar, multi-select por moneda), JSON export v3 con `goals[]`; T-041 PROVISIONAL (pendiente solo prueba en dispositivo)
 
 ---
 
@@ -209,6 +210,6 @@
 
 ---
 
-*Last updated: 2026-10-07*
+*Last updated: 2026-10-08*
 *Last build: `c5f8e99` — production-signed APK (T-036), 82.069.792 B, SHA-256 `D86745B0123055D4877D9D11F9771545B22499C2BA67DBB2BD7380217D78B025`*
-*Tests: 161/161 pass | Typecheck: PASS (raíz + app) | Export: OK | APK: 82MB, signed (prod key), R8+shrink*
+*Tests: 178/178 pass | Typecheck: PASS (raíz + app) | Export: JSON v3 OK | APK: sin cambios desde T-036 (último known-good)*

@@ -69,7 +69,7 @@ La DB protege **integridad estructural**, nunca semántica financiera:
 
 ## 8. Migration strategy (DECIDED)
 
-- `MIGRATIONS` = lista explícita `[{version, name, statements[]}]`; versión objetivo = `SCHEMA_VERSION` (hoy 2; la v2 agrega la tabla `budgets`).
+- `MIGRATIONS` = lista explícita `[{version, name, statements[]}]`; versión objetivo = `SCHEMA_VERSION` (hoy 3; la v2 agrega la tabla `budgets`, la v3 agrega `goals` + `goal_accounts`).
 - `migrate(db, migrations = MIGRATIONS)`: valida orden/unicidad, rehúsa versiones futuras (`SCHEMA_VERSION_MISMATCH`), aplica cada migración pendiente en **su propia transacción** (DDL + bump de versión atómicos), falla cerrado en SQL roto (versión y datos intactos), idempotente.
 - Sin `CREATE TABLE IF NOT EXISTS` como sistema; sin migraciones destructivas automáticas.
 - Lista inyectable → tests cubren: fresh, idempotencia, upgrade aditivo v1→v2 sintético, fallo a mitad, mismatch de versión, valores corruptos de versión (`'abc'`, fila ausente, `'007'`).
